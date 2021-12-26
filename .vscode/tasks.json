@@ -4,40 +4,49 @@
     "version": "2.0.0",
     
     "tasks": [
-        
+        // Windows
         {
             "type": "shell",
             "label": "Build MeshEngine [WINDOWS]",
-            "windows": {
-                "command": "build_windows.bat",
-            },
-            "linux": {
-                "command": "./build_pi.sh",
-            },
+            "command": "build_windows.bat",
             "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
             "group": {"kind": "build", "isDefault": true},
         },
         {
             "type": "shell",
-            "label": "Test MeshEngine",
-            "windows": {
-                "command": "build\\MeshWindows-DEBUG.exe",
-            },
-            "linux": {
-                "command": "./build/MeshPi_DEBUG.sh",
-            },
+            "label": "Test MeshEngine [WINDOWS]",
+            "command": "build\\MeshWindows-DEBUG.exe",
             "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
             "group": {"kind": "test", "isDefault": true},
         },
         {
             "type": "shell",
-            "label": "Debug MeshEngine",
-            "windows": {
-                "command": "devenv build/MeshWindows-DEBUG.exe",
-            },
-            "linux": {
-                "command": "gdb build/MeshWindows_DEBUG.exe"
-            },
+            "label": "Debug MeshEngine [WINDOWS]",
+            "command": "devenv build/MeshWindows-DEBUG.exe",
+            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
+            "group": {"kind": "test", "isDefault": true},
+        },
+
+
+        // RPI
+        {
+            "type": "shell",
+            "label": "Build MeshEngine [RPI]",
+            "command": "./build_pi.sh",
+            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
+            "group": {"kind": "build", "isDefault": true},
+        },
+        {
+            "type": "shell",
+            "label": "Test MeshEngine [RPI]",
+            "command": "./build/MeshPi_DEBUG",
+            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
+            "group": {"kind": "test", "isDefault": true},
+        },
+        {
+            "type": "shell",
+            "label": "Debug MeshEngine [RPI]",
+            "command": "gdb build/MeshPi-DEBUG",
             "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
             "group": {"kind": "test", "isDefault": true},
         }
