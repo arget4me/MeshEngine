@@ -136,10 +136,12 @@ void initPlatformLayer()
 
    LOG("OpenGL_ES initialized");
 
+#ifdef DEBUG
    const char* egl_client_apis = eglQueryString(state->display, EGL_CLIENT_APIS);
    const char* egl_extensions = eglQueryString(state->display, EGL_EXTENSIONS);
    const char* egl_vendor = eglQueryString(state->display, EGL_VENDOR);
    const char* egl_version = eglQueryString(state->display, EGL_VERSION);
+#endif
 
    LOG("eglQueryString:\n");
    LOG("\n\t %s\n", egl_client_apis);
@@ -158,9 +160,10 @@ void initPlatformLayer()
 
 int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
 {
-   while (!terminate)
+   bool GlobalRunning = true;
+   while (GlobalRunning)
    {
-      terminate = UpdateAndRender(1.0f / 60.0f);
+      GlobalRunning = UpdateAndRender( 1.0f / 60.0f );
 
       eglSwapBuffers(state->display, state->surface);
    }
