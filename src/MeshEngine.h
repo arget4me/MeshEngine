@@ -5,8 +5,9 @@
 namespace MESHAPI
 {
 
+typedef bool (UpdateAndRenderFunc)(real32 dt);
+
 bool InitGLTest();
-void UpdateAndRender(real32 dt);
 
 }
 

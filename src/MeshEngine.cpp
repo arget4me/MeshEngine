@@ -5,11 +5,13 @@
 
 #if _WIN64
 
+#include "Windows/windows_platform_layer.h"
 #include <GLEW/glew.h>
 
 #elif __linux__
 #ifdef RASPBERRY_PI
 
+#include "RaspberryPi/raspberrypi_platform_layer.h"
 #include "GLES2/gl2.h"
 #include "GLES2/gl2ext.h"
 #include "EGL/egl.h"
@@ -19,6 +21,8 @@
 #endif
 
 #include <cmath>
+
+#include <log.h>
 
 namespace MESHAPI
 {
@@ -185,7 +189,7 @@ internal void Draw( GLfloat aspectRatio)
 }
 
 internal real32 elapsed;
-void UpdateAndRender(real32 dt)
+bool UpdateAndRender(real32 dt)
 {
     constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
 
@@ -196,6 +200,31 @@ void UpdateAndRender(real32 dt)
     update(&rot[0], 0.01f * elapsed);
     Draw(aspectRatio);
     //
+
+    return true;
 }
 
+}
+
+#if _WIN64 && defined(RELEASE)
+int __stdcall WinMain(
+    HINSTANCE hinstance,  // handle to current instance 
+    HINSTANCE hinstPrev,  // handle to previous instance 
+    LPSTR lpCmdLine,      // address of command-line string 
+    int nCmdShow         // show-window type 
+)
+#else
+int main(int argc, char* argv[])
+#endif
+{
+   using namespace MESHAPI;
+   initPlatformLayer();
+   if(!InitGLTest())
+   {
+      return -1;
+   }
+
+   LOG("Starting game loop\n");
+
+   return startGameloop( &UpdateAndRender );
 }

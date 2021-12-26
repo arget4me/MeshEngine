@@ -1,5 +1,5 @@
+#include "raspberrypi_platform_layer.h"
 #include <common.h>
-#include <stdio.h>
 #include "bcm_host.h"
 
 #include "GLES2/gl2.h"
@@ -10,6 +10,8 @@
 #include <assert.h>
 
 #include <MeshEngine.h>
+
+#include <log.h>
 
 namespace MESHAPI
 {
@@ -120,9 +122,8 @@ internal void init_ogl(CUBE_STATE_T *state)
    result = eglMakeCurrent(state->display, state->surface, state->surface, state->context);
    assert(EGL_FALSE != result);
 }
-}
 
-int main()
+void initPlatformLayer()
 {
    using namespace MESHAPI;
    bcm_host_init();
@@ -133,35 +134,40 @@ int main()
    // Start OGLES
    init_ogl(state);
 
-   printf("OpenGL_ES initialized");
+   LOG("OpenGL_ES initialized");
 
    const char* egl_client_apis = eglQueryString(state->display, EGL_CLIENT_APIS);
    const char* egl_extensions = eglQueryString(state->display, EGL_EXTENSIONS);
    const char* egl_vendor = eglQueryString(state->display, EGL_VENDOR);
    const char* egl_version = eglQueryString(state->display, EGL_VERSION);
 
-   printf("eglQueryString:\n");
-   printf("\n\t %s\n", egl_client_apis);
-   printf("\n\t %s\n", egl_extensions);
-   printf("\n\t %s\n", egl_vendor);
-   printf("\n\t %s\n", egl_version);
+   LOG("eglQueryString:\n");
+   LOG("\n\t %s\n", egl_client_apis);
+   LOG("\n\t %s\n", egl_extensions);
+   LOG("\n\t %s\n", egl_vendor);
+   LOG("\n\t %s\n", egl_version);
 
-   printf("glGetString:\n");
-   printf("\n\t %s\n", glGetString( GL_RENDERER ));
-   printf("\n\t %s\n", glGetString( GL_VENDOR ));
-   printf("\n\t %s\n", glGetString( GL_VERSION ));
-   printf("\n\t %s\n", glGetString( GL_SHADING_LANGUAGE_VERSION ));
-   printf("\n\t %s\n", glGetString( GL_EXTENSIONS ));
+   LOG("glGetString:\n");
+   LOG("\n\t %s\n", glGetString( GL_RENDERER ));
+   LOG("\n\t %s\n", glGetString( GL_VENDOR ));
+   LOG("\n\t %s\n", glGetString( GL_VERSION ));
+   LOG("\n\t %s\n", glGetString( GL_SHADING_LANGUAGE_VERSION ));
+   LOG("\n\t %s\n", glGetString( GL_EXTENSIONS ));
 
-   InitGLTest();
+}
 
+int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
+{
    while (!terminate)
    {
-      UpdateAndRender(1.0f / 60.0f);
+      terminate = UpdateAndRender(1.0f / 60.0f);
 
       eglSwapBuffers(state->display, state->surface);
    }
 
    return 0;
+}
+
+
 }
 

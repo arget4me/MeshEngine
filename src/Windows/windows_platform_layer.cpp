@@ -1,13 +1,17 @@
+#include "windows_platform_layer.h"
 #include <common.h>
 #include <Windows.h>
 
 #include <GLEW/glew.h>
 #include <GLEW/wglew.h>
-#include <stdio.h>
 #include <MeshEngine.h>
+
+#include <log.h>
 
 namespace MESHAPI
 {
+internal HDC GlobalDeviceContext;
+
 LRESULT CALLBACK MainWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 inline internal bool RegisterWNDClass(HINSTANCE hinstance, const wchar_t* WINDOW_CLASS_NAME)
@@ -114,11 +118,11 @@ inline internal bool InitOpenGL()
     if (GLEW_OK != err)
     {
         /* Problem: glewInit failed, something is seriously wrong. */
-        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+        ERRORLOG("Error: %s\n", glewGetErrorString(err));
         return false;
     }
 
-    fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    ERRORLOG("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
     return true;
 }
 
@@ -155,7 +159,7 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
                 PIXELFORMATDESCRIPTOR pfd{};
                 if(SetPixelFormat(DeviceContext, pixelFormat, &pfd))
                 {
-                    OutputDebugStringA("Successfully set opengl pixelformat\n");
+                    LOG("Successfully set opengl pixelformat\n");
 
                     const int attribList[] =
                     {
@@ -168,13 +172,13 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
                 }
             }
 
-            OutputDebugStringA("\n\nExtensions : ");
-            OutputDebugStringA((char *)glGetString(GL_EXTENSIONS));
-            OutputDebugStringA("\n\nShading Language : ");
-            OutputDebugStringA((char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
-            OutputDebugStringA("\n\nGL Version : ");
-            OutputDebugStringA((char *)glGetString(GL_VERSION));
-            OutputDebugStringA("\n\n");
+            LOG("\n\nExtensions : ");
+            LOG((char *)glGetString(GL_EXTENSIONS));
+            LOG("\n\nShading Language : ");
+            LOG((char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+            LOG("\n\nGL Version : ");
+            LOG((char *)glGetString(GL_VERSION));
+            LOG("\n\n");
 
             // Destroy dummy context now that the WGL extensions are loaded.
             wglMakeCurrent(dummy.deviceContext, 0);
@@ -200,7 +204,7 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
     return opengl_context_handle;
 }
 
-int internal StartMessageLoop(HWND hwnd, HDC DeviceContext)
+int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
 {
     bool GlobalRunning = true;
     while (GlobalRunning)
@@ -219,13 +223,11 @@ int internal StartMessageLoop(HWND hwnd, HDC DeviceContext)
         //UPDATE AND RENDER
         UpdateAndRender(1.0f / 60.0f);
 
-        SwapBuffers(DeviceContext);
+        SwapBuffers(GlobalDeviceContext);
     }
 
     return 0;
 }
-
-
 
 LRESULT CALLBACK MainWndProc(
     HWND hwnd,        // handle to window
@@ -258,15 +260,10 @@ LRESULT CALLBACK MainWndProc(
     return Result; 
 }
 
-} 
 
-int __stdcall WinMain(
-    HINSTANCE hinstance,  // handle to current instance 
-    HINSTANCE hinstPrev,  // handle to previous instance 
-    LPSTR lpCmdLine,      // address of command-line string 
-    int nCmdShow         // show-window type 
-)
+int initPlatformLayer()
 {
+    HINSTANCE hinstance = GetModuleHandle(0); // Only works if calling process is not from a dll
     using namespace MESHAPI;
     const wchar_t* WINDOW_CLASS_NAME = L"MESH ENGINE WINDOW CLASS";
 
@@ -283,26 +280,22 @@ int __stdcall WinMain(
 
 
     HGLRC opengl_context_handle;
-    HDC DeviceContext = GetDC(hwnd);
-    opengl_context_handle = Win32CreateOpenGLContext(hinstance, DeviceContext);
+    GlobalDeviceContext = GetDC(hwnd);
+    opengl_context_handle = Win32CreateOpenGLContext(hinstance, GlobalDeviceContext);
 
     if(opengl_context_handle == nullptr)
     {
         return FALSE;
     }
 
-    if (!wglMakeCurrent(DeviceContext, opengl_context_handle))
+    if (!wglMakeCurrent(GlobalDeviceContext, opengl_context_handle))
     {
         return FALSE;
     }
 
     ShowWindow(hwnd, SW_SHOW);
 
-    if(!InitGLTest())
-    {
-        return FALSE;
-    }
-
-    return StartMessageLoop(hwnd, DeviceContext);
+    return TRUE;
 }
 
+} 
