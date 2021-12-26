@@ -120,6 +120,7 @@ internal void init_ogl(CUBE_STATE_T *state)
    result = eglMakeCurrent(state->display, state->surface, state->surface, state->context);
    assert(EGL_FALSE != result);
 }
+}
 
 int main()
 {
