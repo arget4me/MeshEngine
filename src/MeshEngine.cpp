@@ -202,7 +202,7 @@ bool UpdateAndRender(real32 dt)
 {
    UserInput input{};
    QueryUserInput(input);
-   // LogUserInput(userInput);
+   // LogUserInput(input);
    
    constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
    glClearColor( 1.f, 0.f, 1.f, 1.f );
@@ -216,11 +216,10 @@ bool UpdateAndRender(real32 dt)
 
    angle += input.Fire1 * dt;
 
-   static int loopvalue = 10;
-   loopvalue += (6-3) * 4;
-   loop(loopvalue, 3, 6);
-   LOG("%d\n", loopvalue);
-
+   static real32 loopvalue = 10.345f;
+   loopvalue += (input.Horizontal > 0) * 0.001f - (input.Horizontal <= 0) * 0.001f;
+   loop(loopvalue, -3.678f, -2.543f);
+   LOG("%.3f\n", loopvalue);
 
    Draw(aspectRatio);
 

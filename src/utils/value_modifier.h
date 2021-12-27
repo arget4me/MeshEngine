@@ -5,10 +5,10 @@
 inline void clamp(int32& value, const int32& min, const int32& max);
 inline void clamp(real32& value, const real32& min, const real32& max);
 
-inline void loop(int32& value, const int32& min, const int32& max);
-inline void loop(real32& value, const real32& min, const real32& max);
+void loop(int32& value, const int32& min, const int32& max);
+void loop(real32& value, const real32& min, const real32& max);
 
-
+// #define VALUEMODIFIER_IMPLEMENTATION
 #ifdef VALUEMODIFIER_IMPLEMENTATION
 inline void clamp(int32& value, const int32& min, const int32& max)
 {
@@ -36,38 +36,38 @@ inline void clamp(real32& value, const real32& min, const real32& max)
 
 #include <cmath>
 
-inline void loop(int32& value, const int32& min, const int32& max)
+void loop(int32& value, const int32& min, const int32& max)
 {
     if(min == max)
     {
         value = max;
+        return;
     }
 
-    if(value < min)
+    int32 range = (max - min);
+    range = range >= 0 ? range + 1 : 1 - range;
+
+    int32 diff = value - min;
+    int32 offset = 0;
+    if(diff < 0)
     {
-        const int32 range = max - min;
-        const int32 offset = min - value;
-        const int32 append = min + (((offset-min) / range) * range);
-        value += append;
+        diff = -diff;
+        offset = (diff / range + 1) * range;
     }
-
-    if(value > max)
-    {
-        const int32 range = max - min;
-        const int32 offset = value - max;
-        const int32 append = (((offset-max) / range) * range);
-        value -= append;
-    }
-
-
+    int32 newValue = ((value - min) + offset) % range;
+    value = newValue + min;
 }
 
-inline void loop(real32& value, const real32& min, const real32& max)
+void loop(real32& value, const real32& min, const real32& max)
 {
-    // 0.3f -> 0.743f
+    constexpr real32 shiftFraction = 1000.f;
+    constexpr real32 inverseShiftFraction = 1.f / shiftFraction;
 
-    // 82.843f
-    // 0.3004f
+    int32 newValue = (int32)(value * shiftFraction);
+    int32 newMin   = (int32)(min   * shiftFraction);
+    int32 newMax   = (int32)(max   * shiftFraction);
+    loop(newValue, newMin, newMax);
+    value = (real32)newValue * inverseShiftFraction;
 }
 
 
