@@ -197,11 +197,20 @@ inline void LogUserInput(const UserInput& input)
    LOG("Submit: %.1f\n", input.Submit);
 }
 
-internal real32 elapsed;
+inline void LogUserMouse(const UserInput& input)
+{
+   LOG("MouseLeft: %.1f\n", input.Fire2);
+   LOG("MouseRight: %.1f\n", input.Fire3);
+   LOG("MouseWheel: %.1f\n", input.MouseScrollWheel);
+   LOG("MouseX: %.1f\n", input.MouseX);
+   LOG("MouseY: %.1f\n", input.MouseY);
+}
+
 bool UpdateAndRender(real32 dt)
 {
    UserInput input{};
    QueryUserInput(input);
+   LogUserMouse(input);
    
    constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
    glClearColor( 1.f, 0.f, 1.f, 1.f );
@@ -212,7 +221,7 @@ bool UpdateAndRender(real32 dt)
    clamp(rot[12], -1, 1);
    clamp(rot[13], -1, 1);
 
-   angle += input.Fire1 * dt;
+   angle += input.Fire1 * dt + 3.4f * input.MouseScrollWheel * dt;
    color[0] += input.Fire2 * dt;
    color[1] += input.Fire3 * dt;
    color[2] += (input.Fire3 > 0 && input.Fire2 > 0) * dt;

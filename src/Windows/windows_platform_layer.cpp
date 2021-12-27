@@ -1,6 +1,7 @@
 #include "windows_platform_layer.h"
 #include <common.h>
 #include <Windows.h>
+#include <windowsx.h>
 
 #include <GLEW/glew.h>
 #include <GLEW/wglew.h>
@@ -213,14 +214,15 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
 bool QueryUserInput(UserInput& input)
 {
     input = winData.UserInput;
+    winData.UserInput.MouseScrollWheel = 0;
     clamp(input.Horizontal, -1.0f, 1.0f);
     clamp(input.Vertical, -1.0f, 1.0f);
     clamp(input.Fire1, -1.0f, 1.0f);
     clamp(input.Fire2, -1.0f, 1.0f);
     clamp(input.Fire3, -1.0f, 1.0f);
     clamp(input.Jump, -1.0f, 1.0f);
-    clamp(input.MouseX, -1.0f, 1.0f);
-    clamp(input.MouseY, -1.0f, 1.0f);
+    // clamp(input.MouseX, -1.0f, 1.0f); // NOTE: Should be NDC instead
+    // clamp(input.MouseY, -1.0f, 1.0f); // NOTE: Should be NDC instead
     clamp(input.MouseScrollWheel, -1.0f, 1.0f);
     clamp(input.Submit, -1.0f, 1.0f);
     clamp(input.Cancel, -1.0f, 1.0f);
@@ -278,9 +280,14 @@ LRESULT CALLBACK MainWndProc(
         {
             winData.UserInput.Fire3 -= 1.0f;
         }break;
+        case WM_MOUSEMOVE:
+        {
+            winData.UserInput.MouseX = (real32)GET_X_LPARAM(LParam);
+            winData.UserInput.MouseY = (real32)GET_Y_LPARAM(LParam);
+        }break;
         case WM_MOUSEWHEEL:
         {
-
+            winData.UserInput.MouseScrollWheel = (real32)GET_WHEEL_DELTA_WPARAM(WParam);
         }break;
 
         case WM_SYSKEYDOWN:
