@@ -16,7 +16,7 @@ internal struct WindowsPlatformInternalData
 {
     HDC DeviceContext;
     UserInput UserInput{};
-}winData;
+}winData{};
 
 LRESULT CALLBACK MainWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -262,10 +262,26 @@ LRESULT CALLBACK MainWndProc(
  
     switch (uMsg) 
     {
-        // case WM_MOUSEWHEEL:
-        // {
+        case WM_LBUTTONDOWN:
+        {
+            winData.UserInput.Fire2 += 1.0f;
+        }break;
+        case WM_RBUTTONDOWN:
+        {
+            winData.UserInput.Fire3 += 1.0f;
+        }break;
+        case WM_LBUTTONUP:
+        {
+            winData.UserInput.Fire2 -= 1.0f;
+        }break;
+        case WM_RBUTTONUP:
+        {
+            winData.UserInput.Fire3 -= 1.0f;
+        }break;
+        case WM_MOUSEWHEEL:
+        {
 
-        // }break;
+        }break;
 
         case WM_SYSKEYDOWN:
         case WM_SYSKEYUP:

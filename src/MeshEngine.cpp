@@ -137,7 +137,7 @@ internal GLfloat ratio[] = { // Column Major
    0.f, 0.f, 0.f, 1.f, //Column 3
 };
 
-internal GLfloat color[] = { 1.0f /*r*/, 1.0f /*g*/, 0.0f /*b*/};
+internal GLfloat color[] = { 1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
 
 internal void setRotation(GLfloat* rot, real32 angle)
 {
@@ -202,7 +202,6 @@ bool UpdateAndRender(real32 dt)
 {
    UserInput input{};
    QueryUserInput(input);
-   // LogUserInput(input);
    
    constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
    glClearColor( 1.f, 0.f, 1.f, 1.f );
@@ -210,16 +209,16 @@ bool UpdateAndRender(real32 dt)
 
    rot[12] += input.Horizontal * dt;
    rot[13] += input.Vertical * dt;
-
    clamp(rot[12], -1, 1);
    clamp(rot[13], -1, 1);
 
    angle += input.Fire1 * dt;
-
-   static real32 loopvalue = 10.345f;
-   loopvalue += (input.Horizontal > 0) * 0.001f - (input.Horizontal <= 0) * 0.001f;
-   loop(loopvalue, -3.678f, -2.543f);
-   LOG("%.3f\n", loopvalue);
+   color[0] += input.Fire2 * dt;
+   color[1] += input.Fire3 * dt;
+   color[2] += (input.Fire3 > 0 && input.Fire2 > 0) * dt;
+   loop(color[0], 0.0f, 1.0f);
+   loop(color[1], 0.0f, 1.0f);
+   loop(color[2], 0.0f, 1.0f);
 
    Draw(aspectRatio);
 
