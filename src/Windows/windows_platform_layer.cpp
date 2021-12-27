@@ -146,6 +146,7 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
             const int attribList[] =
             {
                 WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+                WGL_SAMPLES_ARB, 4,
                 WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
                 WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
                 WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
@@ -158,7 +159,6 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
 
             int pixelFormat;
             UINT numFormats;
-            glEnable(GL_FRAMEBUFFER_SRGB);
 
             if(wglChoosePixelFormatARB(DeviceContext, attribList, NULL, 1, &pixelFormat, &numFormats))
             {
@@ -417,6 +417,8 @@ int initPlatformLayer()
     {
         return FALSE;
     }
+
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     ShowWindow(hwnd, SW_SHOW);
 
