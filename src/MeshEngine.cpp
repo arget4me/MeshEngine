@@ -57,7 +57,7 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
     {
     char* infoLog = (char*)malloc(sizeof(char) * infoLen);
     glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-    printf("Error compiling shader:\n%s\n", infoLog);
+    ERRORLOG("Error compiling shader:\n%s\n", infoLog);
     free(infoLog);
     }
     glDeleteShader(shader);
@@ -111,7 +111,7 @@ bool InitGLTest()
       {
          char* infoLog = (char*) malloc(sizeof(char) * infoLen);
          glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
-         printf("Error linking program:\n%s\n", infoLog);
+         ERRORLOG("Error linking program:\n%s\n", infoLog);
 
          free(infoLog);
       }
@@ -210,7 +210,6 @@ bool UpdateAndRender(real32 dt)
 {
    UserInput input{};
    QueryUserInput(input);
-   LogUserMouse(input);
    
    constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
    glClearColor( 1.f, 0.f, 1.f, 1.f );
