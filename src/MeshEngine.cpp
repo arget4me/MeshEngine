@@ -22,7 +22,9 @@
 
 #include <cmath>
 
-#include <log.h>
+#include <utils/log.h>
+#define VALUEMODIFIER_IMPLEMENTATION
+#include <utils/value_modifier.h>
 
 namespace MESHAPI
 {
@@ -64,10 +66,6 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
     return shader;
 }
 
-
-//
-// Initialize the shader and program object
-//
 bool InitGLTest()
 {
    GLbyte vShaderStr[] =
@@ -124,8 +122,7 @@ bool InitGLTest()
    return true;
 }
 
-
-
+internal real32 angle = 0.0f;
 
 internal GLfloat rot[] = { // Column Major
    1.f, 0.f, 0.f, 0.f, //Column 0
@@ -140,24 +137,20 @@ internal GLfloat ratio[] = { // Column Major
    0.f, 0.f, 0.f, 1.f, //Column 3
 };
 
-void update(GLfloat* rot, float dt)
-{
-   rot[0 + 0 * 4] =  cos(dt);
-   rot[1 + 0 * 4] = -sin(dt);
+internal GLfloat color[] = { 1.0f /*r*/, 1.0f /*g*/, 0.0f /*b*/};
 
-   rot[0 + 1 * 4] =  sin(dt);
-   rot[1 + 1 * 4] =  cos(dt);
+internal void setRotation(GLfloat* rot, real32 angle)
+{
+   rot[0 + 0 * 4] =  cos(angle);
+   rot[1 + 0 * 4] = -sin(angle);
+
+   rot[0 + 1 * 4] =  sin(angle);
+   rot[1 + 1 * 4] =  cos(angle);
 
 }
 
 internal void Draw( GLfloat aspectRatio)
 {
-   // GLfloat vVertices[] = {
-   //     0.0f,  0.5f, 0.0f, 
-   //    -0.5f, -0.5f, 0.0f, 
-   //     0.5f, -0.5f, 0.0f
-   // };
-   
    GLfloat vVertices[] = {
       -0.5f, -0.5f, 0.0f, 
       +0.5f, -0.5f, 0.0f, 
@@ -169,6 +162,7 @@ internal void Draw( GLfloat aspectRatio)
    };
 
    glUseProgram(programObject);
+   setRotation(rot, angle);
 
    static GLuint rot_pos = glGetUniformLocation(programObject, "rot");
    glUniformMatrix4fv(	rot_pos, 1, GL_FALSE, &rot[0]);
@@ -179,7 +173,7 @@ internal void Draw( GLfloat aspectRatio)
    glUniformMatrix4fv(	ratio_pos, 1, GL_FALSE, &ratio[0]);
 
    static GLuint color_pos = glGetUniformLocation(programObject, "color");
-   glUniform3f(color_pos, 1.0f, 1.0f, 0.f);
+   glUniform3f(color_pos, color[0], color[1], color[2]);
 
    // Load the vertex data
    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
@@ -188,20 +182,49 @@ internal void Draw( GLfloat aspectRatio)
    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+inline void LogUserInput(const UserInput& input)
+{
+   LOG("Horizontal: %.1f\n", input.Horizontal);
+   LOG("Vertical: %.1f\n", input.Vertical);
+   LOG("Cancel: %.1f\n", input.Cancel);
+   LOG("Fire1: %.1f\n", input.Fire1);
+   LOG("Fire2: %.1f\n", input.Fire2);
+   LOG("Fire3: %.1f\n", input.Fire3);
+   LOG("Jump: %.1f\n", input.Jump);
+   LOG("MouseScrollWheel: %.1f\n", input.MouseScrollWheel);
+   LOG("MouseX: %.1f\n", input.MouseX);
+   LOG("MouseY: %.1f\n", input.MouseY);
+   LOG("Submit: %.1f\n", input.Submit);
+}
+
 internal real32 elapsed;
 bool UpdateAndRender(real32 dt)
 {
-    constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
+   UserInput input{};
+   QueryUserInput(input);
+   // LogUserInput(userInput);
+   
+   constexpr GLfloat aspectRatio = (GLfloat) 9 / (GLfloat) 16;
+   glClearColor( 1.f, 0.f, 1.f, 1.f );
+   glClear( GL_COLOR_BUFFER_BIT );
 
-    // clear screen
-    glClearColor( 1.f, 0.f, 1.f, 1.f );
-    glClear( GL_COLOR_BUFFER_BIT );
-    elapsed += dt * 60;
-    update(&rot[0], 0.01f * elapsed);
-    Draw(aspectRatio);
-    //
+   rot[12] += input.Horizontal * dt;
+   rot[13] += input.Vertical * dt;
 
-    return true;
+   clamp(rot[12], -1, 1);
+   clamp(rot[13], -1, 1);
+
+   angle += input.Fire1 * dt;
+
+   static int loopvalue = 10;
+   loopvalue += (6-3) * 4;
+   loop(loopvalue, 3, 6);
+   LOG("%d\n", loopvalue);
+
+
+   Draw(aspectRatio);
+
+   return true;
 }
 
 }

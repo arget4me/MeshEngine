@@ -6,11 +6,17 @@
 #include <GLEW/wglew.h>
 #include <MeshEngine.h>
 
-#include <log.h>
+#include <utils/log.h>
+#include <utils/value_modifier.h>
 
 namespace MESHAPI
 {
-internal HDC GlobalDeviceContext;
+
+internal struct WindowsPlatformInternalData
+{
+    HDC DeviceContext;
+    UserInput UserInput{};
+}winData;
 
 LRESULT CALLBACK MainWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -204,6 +210,23 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
     return opengl_context_handle;
 }
 
+bool QueryUserInput(UserInput& input)
+{
+    input = winData.UserInput;
+    clamp(input.Horizontal, -1.0f, 1.0f);
+    clamp(input.Vertical, -1.0f, 1.0f);
+    clamp(input.Fire1, -1.0f, 1.0f);
+    clamp(input.Fire2, -1.0f, 1.0f);
+    clamp(input.Fire3, -1.0f, 1.0f);
+    clamp(input.Jump, -1.0f, 1.0f);
+    clamp(input.MouseX, -1.0f, 1.0f);
+    clamp(input.MouseY, -1.0f, 1.0f);
+    clamp(input.MouseScrollWheel, -1.0f, 1.0f);
+    clamp(input.Submit, -1.0f, 1.0f);
+    clamp(input.Cancel, -1.0f, 1.0f);
+    return true;
+}
+
 int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
 {
     bool GlobalRunning = true;
@@ -223,7 +246,7 @@ int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
         //UPDATE AND RENDER
         UpdateAndRender(1.0f / 60.0f);
 
-        SwapBuffers(GlobalDeviceContext);
+        SwapBuffers(winData.DeviceContext);
     }
 
     return 0;
@@ -232,13 +255,92 @@ int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
 LRESULT CALLBACK MainWndProc(
     HWND hwnd,        // handle to window
     UINT uMsg,        // message identifier
-    WPARAM wParam,    // first message parameter
-    LPARAM lParam)    // second message parameter
+    WPARAM WParam,    // first message parameter
+    LPARAM LParam)    // second message parameter
 { 
     LRESULT Result = 0;
  
     switch (uMsg) 
-    {  
+    {
+        // case WM_MOUSEWHEEL:
+        // {
+
+        // }break;
+
+        case WM_SYSKEYDOWN:
+        case WM_SYSKEYUP:
+        case WM_KEYDOWN:
+        case WM_KEYUP:
+        {
+            uint32 VKCode = WParam;
+            bool32 WasDown = ((LParam & (1 << 30)) != 0);
+            bool32 IsDown = ((LParam & (1 << 31)) == 0);
+            bool32 pressed = (WasDown != IsDown);
+            real32 keyValue = IsDown * 1.0f + !IsDown * -1.0f;
+            if(pressed)
+            {
+                if (VKCode == 'W')
+                {
+                    winData.UserInput.Vertical += keyValue;
+                }
+                else if (VKCode == 'A')
+                {
+                    winData.UserInput.Horizontal += -keyValue;
+                }
+                else if (VKCode == 'S')
+                {
+                    winData.UserInput.Vertical += -keyValue;
+                }
+                else if (VKCode == 'D')
+                {
+                    winData.UserInput.Horizontal += keyValue;
+                }
+                else if (VKCode == 'Q')
+                {
+                    winData.UserInput.Fire1 += -keyValue;
+                }
+                else if (VKCode == 'E')
+                {
+                    winData.UserInput.Fire1 += keyValue;
+                }
+                else if (VKCode == VK_UP)
+                {
+                    winData.UserInput.Vertical += keyValue;
+                }
+                else if (VKCode == VK_DOWN)
+                {
+                    winData.UserInput.Vertical += -keyValue;
+                }
+                else if (VKCode == VK_LEFT)
+                {
+                    winData.UserInput.Horizontal += -keyValue;
+                }
+                else if (VKCode == VK_RIGHT)
+                {
+                    winData.UserInput.Horizontal += keyValue;
+                }
+                else if (VKCode == VK_ESCAPE)
+                {
+                    winData.UserInput.Cancel += keyValue;
+                }
+                else if (VKCode == VK_SPACE)
+                {
+                    winData.UserInput.Jump += keyValue;
+                }
+                else if (VKCode == VK_RETURN)
+                {
+                    winData.UserInput.Submit += keyValue;
+                }
+            }
+
+
+            bool32 AltKeyDown = (LParam & (1 << 29));
+            if (VKCode == VK_F4 && AltKeyDown)
+            {
+                PostQuitMessage(0);
+            }
+        }
+
         case WM_SIZE: 
         {
 
@@ -255,7 +357,7 @@ LRESULT CALLBACK MainWndProc(
         }break;    // Clean up window-specific data objects.
  
         default: 
-            Result =  DefWindowProc(hwnd, uMsg, wParam, lParam); 
+            Result =  DefWindowProc(hwnd, uMsg, WParam, LParam); 
     } 
     return Result; 
 }
@@ -280,15 +382,15 @@ int initPlatformLayer()
 
 
     HGLRC opengl_context_handle;
-    GlobalDeviceContext = GetDC(hwnd);
-    opengl_context_handle = Win32CreateOpenGLContext(hinstance, GlobalDeviceContext);
+    winData.DeviceContext = GetDC(hwnd);
+    opengl_context_handle = Win32CreateOpenGLContext(hinstance, winData.DeviceContext);
 
     if(opengl_context_handle == nullptr)
     {
         return FALSE;
     }
 
-    if (!wglMakeCurrent(GlobalDeviceContext, opengl_context_handle))
+    if (!wglMakeCurrent(winData.DeviceContext, opengl_context_handle))
     {
         return FALSE;
     }

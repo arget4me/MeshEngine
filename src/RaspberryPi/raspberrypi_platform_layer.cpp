@@ -11,7 +11,7 @@
 
 #include <MeshEngine.h>
 
-#include <log.h>
+#include <utils/log.h>
 
 namespace MESHAPI
 {
@@ -156,6 +156,13 @@ void initPlatformLayer()
    LOG("\n\t %s\n", glGetString( GL_SHADING_LANGUAGE_VERSION ));
    LOG("\n\t %s\n", glGetString( GL_EXTENSIONS ));
 
+}
+
+bool QueryUserInput(UserInput& input)
+{
+
+    
+    return true;
 }
 
 int startGameloop(UpdateAndRenderFunc* UpdateAndRender)

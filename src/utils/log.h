@@ -2,7 +2,7 @@
 #define LOG_HEADER
 
 #include <stdio.h>
-#if defined(DEBUG)
+#ifdef DEBUG
     #define ERRORLOG(...) fprintf(stderr, __VA_ARGS__);
     #define LOG(...) fprintf(stdout, __VA_ARGS__);
 #else
