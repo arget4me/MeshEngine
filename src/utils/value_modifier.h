@@ -2,15 +2,15 @@
 #define VALUEMODIFIER_HEADER
 #include <common.h>
 
-inline void clamp(int32& value, const int32& min, const int32& max);
-inline void clamp(real32& value, const real32& min, const real32& max);
+inline void clamp(int32& value, const int32 min, const int32 max);
+inline void clamp(real32& value, const real32 min, const real32 max);
 
-void loop(int32& value, const int32& min, const int32& max);
-void loop(real32& value, const real32& min, const real32& max);
+void loop(int32& value, const int32 min, const int32 max);
+void loop(real32& value, const real32 min, const real32 max);
 
 // #define VALUEMODIFIER_IMPLEMENTATION
 #ifdef VALUEMODIFIER_IMPLEMENTATION
-inline void clamp(int32& value, const int32& min, const int32& max)
+inline void clamp(int32& value, const int32 min, const int32 max)
 {
     if(value < min)
     {
@@ -22,7 +22,7 @@ inline void clamp(int32& value, const int32& min, const int32& max)
     }
 }
 
-inline void clamp(real32& value, const real32& min, const real32& max)
+inline void clamp(real32& value, const real32 min, const real32 max)
 {
     if(value < min)
     {
@@ -36,7 +36,7 @@ inline void clamp(real32& value, const real32& min, const real32& max)
 
 #include <cmath>
 
-void loop(int32& value, const int32& min, const int32& max)
+void loop(int32& value, const int32 min, const int32 max)
 {
     if(min == max)
     {
@@ -58,7 +58,7 @@ void loop(int32& value, const int32& min, const int32& max)
     value = newValue + min;
 }
 
-void loop(real32& value, const real32& min, const real32& max)
+void loop(real32& value, const real32 min, const real32 max)
 {
     constexpr real32 shiftFraction = 1000.f;
     constexpr real32 inverseShiftFraction = 1.f / shiftFraction;
