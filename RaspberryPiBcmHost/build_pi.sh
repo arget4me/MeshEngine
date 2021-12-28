@@ -5,12 +5,11 @@ EXECUTABLE_NAME=MeshPi
 EXECUTABLE_NAME_DEBUG=$EXECUTABLE_NAME-DEBUG
 EXECUTABLE_NAME_RELEASE=$EXECUTABLE_NAME-RELEASE
 
-BUILD_PATH=build
-
-SOURCE_PATH=src
+BUILD_PATH=../build
+SOURCE_PATH=../src
 SOURCE_FILES="$SOURCE_PATH/MeshEngine.cpp $SOURCE_PATH/RaspberryPi/raspberrypi_platform_layer.cpp"
 
-INCLUDE_DIRECTORIES="-I./src/ -I/opt/vc/include/ -I./libs/ilclient -I./libs/vgfont -I./libs/revision"
+INCLUDE_DIRECTORIES="-I./$SOURCE_PATH/ -I/opt/vc/include/ -I./libs/ilclient -I./libs/vgfont -I./libs/revision"
 
 LINK_LIBRARIES="-L/opt/vc/lib/  -lbrcmGLESv2 -lbrcmEGL -lopenmaxil -lbcm_host -lvcos -lvchiq_arm -lpthread -lrt -lm"
 
@@ -18,6 +17,7 @@ DEFINED_MACROS="-DRASPBERRY_PI -DSTANDALONE -D__STDC_CONSTANT_MACROS -D__STDC_LI
 DEFINED_MACROS_DEBUG="$DEFINED_MACROS -DDEBUG"
 DEFINED_MACROS_RELEASE="$DEFINED_MACROS -DRELEASE"
 
+mkdir -p $BUILD_PATH
 
 echo 'building' $EXECUTABLE_NAME_DEBUG
 g++ $DEFINED_MACROS_DEBUG  $INCLUDE_DIRECTORIES -g $SOURCE_FILES -o $BUILD_PATH/$EXECUTABLE_NAME_DEBUG $LINK_LIBRARIES
