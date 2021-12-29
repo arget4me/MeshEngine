@@ -25,7 +25,6 @@ using uint64 = uint64_t;
 using real32 = float   ;
 using real64 = double  ;
 
-
 #if _WIN64
     #ifndef UNICODE
     #define UNICODE
@@ -34,9 +33,15 @@ using real64 = double  ;
 #elif __linux__
 #ifdef RASPBERRY_PI
 
-    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi")
+#ifdef EGL
+    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi EGL")
     #define FULLSCREEN 0
     #define SCREEN_PADDING 50
+#elif defined(GLX)
+    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi GLX")
+#else
+    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi")
+#endif
 
 #endif
 #endif

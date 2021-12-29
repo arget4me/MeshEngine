@@ -17,8 +17,8 @@ namespace MESHAPI
 {
 typedef struct
 {
-   uint32_t screen_width;
-   uint32_t screen_height;
+   uint32 screen_width;
+   uint32 screen_height;
    // OpenGL|ES objects
    DISPMANX_DISPLAY_HANDLE_T dispman_display;
    DISPMANX_ELEMENT_HANDLE_T dispman_element;
@@ -145,9 +145,6 @@ void initPlatformLayer()
    LOG("GL_EXTENSIONS               = %s\n", (char *) glGetString(GL_EXTENSIONS));
    LOG("GL_SHADING_LANGUAGE_VERSION = %s\n", (char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
 #endif
-
-   
-
 }
 
 bool QueryUserInput(UserInput& input)

@@ -97,6 +97,7 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
 bool InitGLTest()
 {
    GLbyte vShaderStr[] =
+      "#version 140 \n"
       "attribute vec4 vPosition; \n"
       "uniform mat4 rot; \n"
       "uniform mat4 ratio; \n"
@@ -106,12 +107,15 @@ bool InitGLTest()
       "} \n";
 
    GLbyte fShaderStr[] =
+      "#version 140 \n"
       "precision mediump float; \n"
       "uniform vec3 color; \n"
       "void main() \n"
       "{ \n"
       " gl_FragColor = vec4(color, 1.0); \n"
       "} \n";
+
+   
    GLuint vertexShader;
    GLuint fragmentShader;
    GLint linked;
@@ -260,12 +264,10 @@ int main(int argc, char* argv[])
    using namespace MESHAPI;
    initPlatformLayer();
    
-   #ifdef EGL
    if(!InitGLTest())
    {
       return -1;
    }
-   #endif
 
    LOG("Starting game loop\n");
 

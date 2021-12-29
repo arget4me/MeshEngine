@@ -129,7 +129,7 @@ inline internal bool InitOpenGL()
         return false;
     }
 
-    ERRORLOG("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    LOG("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
     return true;
 }
 
