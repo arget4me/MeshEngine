@@ -13,7 +13,7 @@
 namespace MESHAPI
 {
 
-internal struct WindowsPlatformInternalData
+static struct WindowsPlatformInternalData
 {
     HDC DeviceContext;
     UserInput UserInput{};
@@ -21,7 +21,7 @@ internal struct WindowsPlatformInternalData
 
 LRESULT CALLBACK MainWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-inline internal bool RegisterWNDClass(HINSTANCE hinstance, const wchar_t* WINDOW_CLASS_NAME)
+inline static bool RegisterWNDClass(HINSTANCE hinstance, const wchar_t* WINDOW_CLASS_NAME)
 {
     WNDCLASS wc = {};
 
@@ -42,7 +42,7 @@ inline internal bool RegisterWNDClass(HINSTANCE hinstance, const wchar_t* WINDOW
     return true;
 }
 
-inline internal bool CreateHWND(HWND& hwnd, HINSTANCE hinstance, const wchar_t* WINDOW_CLASS_NAME)
+inline static bool CreateHWND(HWND& hwnd, HINSTANCE hinstance, const wchar_t* WINDOW_CLASS_NAME)
 {
     hwnd = CreateWindowEx(
         0,                              // Optional window styles.
@@ -69,7 +69,7 @@ struct Win32OpenGLDummyWindow
     int32 pixel_format_index;
 };
 
-internal Win32OpenGLDummyWindow Win32CreateOpenGLDummyWindow(HINSTANCE hInstance)
+static Win32OpenGLDummyWindow Win32CreateOpenGLDummyWindow(HINSTANCE hInstance)
 {
     Win32OpenGLDummyWindow result = { nullptr, nullptr, nullptr, {} };
     
@@ -119,7 +119,7 @@ internal Win32OpenGLDummyWindow Win32CreateOpenGLDummyWindow(HINSTANCE hInstance
     return result;
 }
 
-inline internal bool InitOpenGL()
+inline static bool InitOpenGL()
 {
     GLenum err = glewInit();
     if (GLEW_OK != err)

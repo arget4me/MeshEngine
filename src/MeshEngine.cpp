@@ -41,23 +41,23 @@
 namespace MESHAPI
 {
 
-internal GLuint programObject = 0;
-internal real32 angle = 0.0f;
+static GLuint programObject = 0;
+static real32 angle = 0.0f;
 
-internal GLfloat rot[] = { // Column Major
+static GLfloat rot[] = { // Column Major
    1.f, 0.f, 0.f, 0.f, //Column 0
    0.f, 1.f, 0.f, 0.f, //Column 1
    0.f, 0.f, 1.f, 0.f, //Column 2
    0.f, 0.f, 0.f, 1.f, //Column 3
 };
-internal GLfloat ratio[] = { // Column Major
+static GLfloat ratio[] = { // Column Major
    1.f, 0.f, 0.f, 0.f, //Column 0
    0.f, 1.f, 0.f, 0.f, //Column 1
    0.f, 0.f, 1.f, 0.f, //Column 2
    0.f, 0.f, 0.f, 1.f, //Column 3
 };
 
-internal GLfloat color[] = { 1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
+static GLfloat color[] = { 1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
 
 GLuint LoadShader(const char *shaderSrc, GLenum type)
 {
@@ -154,7 +154,7 @@ bool InitGLTest()
    return true;
 }
 
-internal void setRotation(GLfloat* rot, real32 angle)
+static void setRotation(GLfloat* rot, real32 angle)
 {
    rot[0 + 0 * 4] =  cos(angle);
    rot[1 + 0 * 4] = -sin(angle);
@@ -164,7 +164,7 @@ internal void setRotation(GLfloat* rot, real32 angle)
 
 }
 
-internal void Draw( GLfloat aspectRatio)
+static void Draw( GLfloat aspectRatio)
 {
    GLfloat vVertices[] = {
       -0.5f, -0.5f, 0.0f, 

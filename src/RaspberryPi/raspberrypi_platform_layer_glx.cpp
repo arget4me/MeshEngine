@@ -1,6 +1,7 @@
 #include "raspberrypi_platform_layer.h"
 #include <common.h>
 #include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 #include <GL/glxew.h>
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -22,7 +23,6 @@ typedef struct
    Window window;
    GLXContext context;
    XVisualInfo* visualInfo;
-   XEvent event;
    UserInput input;
 } OPENGL_STATE;
 static OPENGL_STATE _state, *state=&_state;
@@ -84,6 +84,12 @@ void CreateGLXWindow()
     glXMakeCurrent(state->display, state->window, state->context);
     XClearWindow(state->display, state->window);
 	XMapRaised(state->display, state->window);
+    
+    XKeyboardControl keyboardSettings{};
+    keyboardSettings.auto_repeat_mode = AutoRepeatModeOff;
+    XChangeKeyboardControl(state->display, KBAutoRepeatMode, &keyboardSettings);
+    XAutoRepeatOff(state->display);
+
 
     /* XCreateSimpleWindow: does NOT support opengl. Use XCreateWindow instead.
      *   // state->window = XCreateSimpleWindow(state->display, RootWindowOfScreen(state->screen), 0, 0, 480, 340, 1, BlackPixel(state->display, state->screenId), WhitePixel(state->display, state->screenId));
@@ -108,12 +114,9 @@ void CreateGLXWindow()
     LOG("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 }
 
-void ProcessMessages()
+void ProcessMessages(XEvent& e)
 {
-    XNextEvent(state->display, &state->event);
-    XEvent& e = state->event;
     KeySym keysym = 0;
-
     switch(e.type)
     {
         case EnterNotify:
@@ -173,27 +176,27 @@ void ProcessMessages()
             XLookupString(&e.xkey, 0, 0, &keysym, 0);
             LOG("Key pressed: %lu\n", keysym);
             constexpr int keyValue = 1;
-            if (keysym == 'W')
+            if (keysym == 'w')
             {
                 state->input.Vertical += keyValue;
             }
-            else if (keysym == 'A')
+            else if (keysym == 'a')
             {
                 state->input.Horizontal += -keyValue;
             }
-            else if (keysym == 'S')
+            else if (keysym == 's')
             {
                 state->input.Vertical += -keyValue;
             }
-            else if (keysym == 'D')
+            else if (keysym == 'd')
             {
                 state->input.Horizontal += keyValue;
             }
-            else if (keysym == 'Q')
+            else if (keysym == 'q')
             {
                 state->input.Fire1 += -keyValue;
             }
-            else if (keysym == 'E')
+            else if (keysym == 'e')
             {
                 state->input.Fire1 += keyValue;
             }
@@ -231,27 +234,27 @@ void ProcessMessages()
             XLookupString(&e.xkey, 0, 0, &keysym, 0);
             LOG("Key released: %lu\n", keysym);
             constexpr int keyValue = -1;
-            if (keysym == 'W')
+            if (keysym == 'w')
             {
                 state->input.Vertical += keyValue;
             }
-            else if (keysym == 'A')
+            else if (keysym == 'a')
             {
                 state->input.Horizontal += -keyValue;
             }
-            else if (keysym == 'S')
+            else if (keysym == 's')
             {
                 state->input.Vertical += -keyValue;
             }
-            else if (keysym == 'D')
+            else if (keysym == 'd')
             {
                 state->input.Horizontal += keyValue;
             }
-            else if (keysym == 'Q')
+            else if (keysym == 'q')
             {
                 state->input.Fire1 += -keyValue;
             }
-            else if (keysym == 'E')
+            else if (keysym == 'e')
             {
                 state->input.Fire1 += keyValue;
             }
@@ -336,8 +339,12 @@ int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
     bool GlobalRunning = true;
     while (GlobalRunning)
     {
-        ProcessMessages();
-
+        while(XPending(state->display))
+        {
+            XEvent e;
+            XNextEvent(state->display, &e);
+            ProcessMessages(e);
+        }
 
         GlobalRunning = UpdateAndRender( 1.0f / 60.0f );
         glXSwapBuffers(state->display, state->window);

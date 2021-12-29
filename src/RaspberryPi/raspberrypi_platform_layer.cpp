@@ -28,7 +28,7 @@ typedef struct
 } OPENGLES_STATE;
 static OPENGLES_STATE _state, *state=&_state;
 
-internal void init_ogl(OPENGLES_STATE *state)
+static void init_ogl(OPENGLES_STATE *state)
 {
    int32_t success = 0;
    EGLBoolean result;
