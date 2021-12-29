@@ -25,12 +25,10 @@ typedef struct
    EGLDisplay display;
    EGLSurface surface;
    EGLContext context;
-} CUBE_STATE_T;
+} OPENGLES_STATE;
+static OPENGLES_STATE _state, *state=&_state;
 
-static volatile int terminate;
-static CUBE_STATE_T _state, *state=&_state;
-
-internal void init_ogl(CUBE_STATE_T *state)
+internal void init_ogl(OPENGLES_STATE *state)
 {
    int32_t success = 0;
    EGLBoolean result;
@@ -137,24 +135,18 @@ void initPlatformLayer()
    LOG("OpenGL_ES initialized");
 
 #ifdef DEBUG
-   const char* egl_client_apis = eglQueryString(state->display, EGL_CLIENT_APIS);
-   const char* egl_extensions = eglQueryString(state->display, EGL_EXTENSIONS);
-   const char* egl_vendor = eglQueryString(state->display, EGL_VENDOR);
-   const char* egl_version = eglQueryString(state->display, EGL_VERSION);
+   LOG("EGL_CLIENT_APIS             = %s\n", (char *) eglQueryString(state->display, EGL_CLIENT_APIS));
+   LOG("EGL_EXTENSIONS              = %s\n", (char *) eglQueryString(state->display, EGL_EXTENSIONS));
+   LOG("EGL_VENDOR                  = %s\n", (char *) eglQueryString(state->display, EGL_VENDOR));    
+   LOG("EGL_VERSION                 = %s\n", (char *) eglQueryString(state->display, EGL_VERSION));
+   LOG("GL_RENDERER                 = %s\n", (char *) glGetString(GL_RENDERER));
+   LOG("GL_VERSION                  = %s\n", (char *) glGetString(GL_VERSION));
+   LOG("GL_VENDOR                   = %s\n", (char *) glGetString(GL_VENDOR));
+   LOG("GL_EXTENSIONS               = %s\n", (char *) glGetString(GL_EXTENSIONS));
+   LOG("GL_SHADING_LANGUAGE_VERSION = %s\n", (char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
 #endif
 
-   LOG("eglQueryString:\n");
-   LOG("\n\t %s\n", egl_client_apis);
-   LOG("\n\t %s\n", egl_extensions);
-   LOG("\n\t %s\n", egl_vendor);
-   LOG("\n\t %s\n", egl_version);
-
-   LOG("glGetString:\n");
-   LOG("\n\t %s\n", glGetString( GL_RENDERER ));
-   LOG("\n\t %s\n", glGetString( GL_VENDOR ));
-   LOG("\n\t %s\n", glGetString( GL_VERSION ));
-   LOG("\n\t %s\n", glGetString( GL_SHADING_LANGUAGE_VERSION ));
-   LOG("\n\t %s\n", glGetString( GL_EXTENSIONS ));
+   
 
 }
 

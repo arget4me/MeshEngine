@@ -12,10 +12,22 @@
 #ifdef RASPBERRY_PI
 
 #include "RaspberryPi/raspberrypi_platform_layer.h"
+
+#ifdef EGL
 #include "GLES2/gl2.h"
 #include "GLES2/gl2ext.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+#endif
+
+#ifdef GLX
+#include <GL/glxew.h>
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glxext.h>
+
+#endif
 
 #endif
 #endif
@@ -30,6 +42,22 @@ namespace MESHAPI
 {
 
 internal GLuint programObject = 0;
+internal real32 angle = 0.0f;
+
+internal GLfloat rot[] = { // Column Major
+   1.f, 0.f, 0.f, 0.f, //Column 0
+   0.f, 1.f, 0.f, 0.f, //Column 1
+   0.f, 0.f, 1.f, 0.f, //Column 2
+   0.f, 0.f, 0.f, 1.f, //Column 3
+};
+internal GLfloat ratio[] = { // Column Major
+   1.f, 0.f, 0.f, 0.f, //Column 0
+   0.f, 1.f, 0.f, 0.f, //Column 1
+   0.f, 0.f, 1.f, 0.f, //Column 2
+   0.f, 0.f, 0.f, 1.f, //Column 3
+};
+
+internal GLfloat color[] = { 1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
 
 GLuint LoadShader(const char *shaderSrc, GLenum type)
 {
@@ -121,23 +149,6 @@ bool InitGLTest()
 
    return true;
 }
-
-internal real32 angle = 0.0f;
-
-internal GLfloat rot[] = { // Column Major
-   1.f, 0.f, 0.f, 0.f, //Column 0
-   0.f, 1.f, 0.f, 0.f, //Column 1
-   0.f, 0.f, 1.f, 0.f, //Column 2
-   0.f, 0.f, 0.f, 1.f, //Column 3
-};
-internal GLfloat ratio[] = { // Column Major
-   1.f, 0.f, 0.f, 0.f, //Column 0
-   0.f, 1.f, 0.f, 0.f, //Column 1
-   0.f, 0.f, 1.f, 0.f, //Column 2
-   0.f, 0.f, 0.f, 1.f, //Column 3
-};
-
-internal GLfloat color[] = { 1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
 
 internal void setRotation(GLfloat* rot, real32 angle)
 {
@@ -248,10 +259,13 @@ int main(int argc, char* argv[])
 {
    using namespace MESHAPI;
    initPlatformLayer();
+   
+   #ifdef EGL
    if(!InitGLTest())
    {
       return -1;
    }
+   #endif
 
    LOG("Starting game loop\n");
 

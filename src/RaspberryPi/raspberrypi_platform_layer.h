@@ -1,5 +1,10 @@
 #ifndef RASPBERRYPI_PLATFORM_LAYER_HEADER
 #define RASPBERRYPI_PLATFORM_LAYER_HEADER
+#ifndef RASPBERRY_PI
+#define RASPBERRY_PI
+#endif
+
+
 #include <common.h>
 #include <MeshEngine.h>
 #include <Input/user_input.h>

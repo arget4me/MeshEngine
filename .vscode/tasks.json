@@ -62,6 +62,20 @@
             "command": "gdb build/MeshPi-DEBUG",
             "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
             "group": {"kind": "test", "isDefault": true},
-        }
+        },
+
+
+
+        // RPI
+        {
+            "type": "shell",
+            "label": "Make MeshEngine [RPI GLX]",
+            "command": "make",
+            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
+            "group": {"kind": "build", "isDefault": true},
+            "options": {
+                "cwd": "${workspaceFolder}/RaspberryPiGLX/"
+            }
+        },
     ]
 }
