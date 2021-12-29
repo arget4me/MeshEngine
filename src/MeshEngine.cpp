@@ -96,6 +96,7 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
 
 bool InitGLTest()
 {
+#ifdef EGL
    GLbyte vShaderStr[] =
       "#version 140 \n"
       "attribute vec4 vPosition; \n"
@@ -114,7 +115,39 @@ bool InitGLTest()
       "{ \n"
       " gl_FragColor = vec4(color, 1.0); \n"
       "} \n";
+#else
+   // GLbyte vShaderStr[] =
+   //    "#version 330 core\n"
+   //    "in vec4 vPosition; \n"
+   //    "uniform mat4 rot; \n"
+   //    "uniform mat4 ratio; \n"
+   //    "void main() \n"
+   //    "{ \n"
+   //    " gl_Position = ratio * rot * vec4(vPosition.xyz, 1.0); \n"
+   //    "} \n";
 
+   // GLbyte fShaderStr[] =
+   //    "#version 330 core \n"
+   //    "uniform vec3 color; \n"
+   //    "out vec4 FragColor; \n"
+   //    "void main() \n"
+   //    "{ \n"
+   //    " FragColor = vec4(color, 1.0); \n"
+   //    "} \n";
+
+   const char *vShaderStr = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+   const char *fShaderStr = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\n\0";
+#endif
    
    GLuint vertexShader;
    GLuint fragmentShader;
@@ -129,7 +162,9 @@ bool InitGLTest()
    glAttachShader(programObject, vertexShader);
    glAttachShader(programObject, fragmentShader);
 
+#ifdef EGL
    glBindAttribLocation(programObject, 0, "vPosition");
+#endif
 
    glLinkProgram(programObject);
 
@@ -153,6 +188,40 @@ bool InitGLTest()
 
    return true;
 }
+
+void LearnOpenGL()
+{
+   float vertices[] = {
+      -0.5f, -0.5f, 0.0f, // left  
+      0.5f, -0.5f, 0.0f, // right 
+      0.0f,  0.5f, 0.0f  // top   
+   }; 
+
+   unsigned int VBO, VAO;
+   glGenVertexArrays(1, &VAO);
+   glGenBuffers(1, &VBO);
+   // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+   glBindVertexArray(VAO);
+
+   glBindBuffer(GL_ARRAY_BUFFER, VBO);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   glEnableVertexAttribArray(0);
+
+   // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+   glBindBuffer(GL_ARRAY_BUFFER, 0); 
+
+   // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+   // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+   glBindVertexArray(0);
+
+   glUseProgram(programObject);
+   glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+   glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+
 
 static void setRotation(GLfloat* rot, real32 angle)
 {
@@ -243,7 +312,8 @@ bool UpdateAndRender(real32 dt)
    loop(color[1], 0.0f, 1.0f);
    loop(color[2], 0.0f, 1.0f);
 
-   Draw(aspectRatio);
+   // Draw(aspectRatio);
+   LearnOpenGL();
 
    return true;
 }

@@ -25,11 +25,11 @@ inline static bool RegisterWNDClass(HINSTANCE hinstance, const wchar_t* WINDOW_C
 {
     WNDCLASS wc = {};
 
-    // Register the main window class. 
-    wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; 
+    // Register the main window class.
+    wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     wc.lpfnWndProc   = MainWndProc;
-    wc.hInstance     = hinstance; 
-    wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION); 
+    wc.hInstance     = hinstance;
+    wc.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.lpszClassName = WINDOW_CLASS_NAME;
 
@@ -53,7 +53,7 @@ inline static bool CreateHWND(HWND& hwnd, HINSTANCE hinstance, const wchar_t* WI
         // Size and position
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
-        NULL,       // Parent window    
+        NULL,       // Parent window
         NULL,       // Menu
         hinstance,  // Instance handle
         NULL        // Additional application data
@@ -72,7 +72,7 @@ struct Win32OpenGLDummyWindow
 static Win32OpenGLDummyWindow Win32CreateOpenGLDummyWindow(HINSTANCE hInstance)
 {
     Win32OpenGLDummyWindow result = { nullptr, nullptr, nullptr, {} };
-    
+
     WNDCLASS WindowClass{};
     WindowClass.style         = CS_OWNDC; // Note: CS_OWNDC for OpenGl context creation
     WindowClass.lpfnWndProc   = DefWindowProc;
@@ -171,8 +171,9 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
                     const int attribList[] =
                     {
                         WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-                        WGL_CONTEXT_MINOR_VERSION_ARB, 2,
-                        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+                        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+                        WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+                        // WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
                         0, // End
                     };
                     opengl_context_handle = wglCreateContextAttribsARB(DeviceContext, 0, attribList);
@@ -259,10 +260,10 @@ LRESULT CALLBACK MainWndProc(
     UINT uMsg,        // message identifier
     WPARAM WParam,    // first message parameter
     LPARAM LParam)    // second message parameter
-{ 
+{
     LRESULT Result = 0;
- 
-    switch (uMsg) 
+
+    switch (uMsg)
     {
         case WM_LBUTTONDOWN:
         {
@@ -364,25 +365,25 @@ LRESULT CALLBACK MainWndProc(
             }
         }
 
-        case WM_SIZE: 
+        case WM_SIZE:
         {
 
-        }break;    // Set the size and position of the window. 
+        }break;    // Set the size and position of the window.
 
         case WM_CLOSE:
         {
             PostQuitMessage(0);
         }break;
 
-        case WM_DESTROY: 
+        case WM_DESTROY:
         {
             PostQuitMessage(0);
         }break;    // Clean up window-specific data objects.
- 
-        default: 
-            Result =  DefWindowProc(hwnd, uMsg, WParam, LParam); 
-    } 
-    return Result; 
+
+        default:
+            Result =  DefWindowProc(hwnd, uMsg, WParam, LParam);
+    }
+    return Result;
 }
 
 
@@ -425,4 +426,4 @@ int initPlatformLayer()
     return TRUE;
 }
 
-} 
+}
