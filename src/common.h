@@ -30,10 +30,11 @@ using real64 = double  ;
     #ifndef UNICODE
     #define UNICODE
     #endif
-    #define WINDOWS_APPLICATION_NAME TEXT(APPLICATION_NAME)
+    #define WINDOWS_APPLICATION_NAME (TEXT(APPLICATION_NAME) TEXT(" - Windows"))
 #elif __linux__
 #ifdef RASPBERRY_PI
 
+    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi")
     #define FULLSCREEN 0
     #define SCREEN_PADDING 50
 
