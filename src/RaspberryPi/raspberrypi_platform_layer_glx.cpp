@@ -8,6 +8,7 @@
 #include <GL/glxext.h>
 
 #include <utils/log.h>
+#include <utils/value_modifier.h>
 
 namespace MESHAPI
 {
@@ -22,6 +23,7 @@ typedef struct
    GLXContext context;
    XVisualInfo* visualInfo;
    XEvent event;
+   UserInput input;
 } OPENGL_STATE;
 static OPENGL_STATE _state, *state=&_state;
 
@@ -125,14 +127,42 @@ void ProcessMessages()
         case MotionNotify:
         {
             LOG("Mouse moved: (%d, %d) Window coordinates\n", e.xmotion.x, e.xmotion.y);
+            state->input.MouseX = e.xmotion.x;
+            state->input.MouseY = e.xmotion.y;
         }break;
         case ButtonPress:
         {
-            LOG("Mouse button pressed: %u\n", e.xbutton.button);
+            unsigned int& mouseButton = e.xbutton.button;
+            LOG("Mouse button pressed: %u\n", mouseButton);
+            if (mouseButton == 1) {
+                state->input.Fire2 += 1;
+            }
+            else if (mouseButton == 2) {
+                state->input.Submit += 1;
+            }
+            else if (mouseButton == 3) {
+                state->input.Fire3 += 1;
+            }
+            else if (mouseButton == 4) {
+                state->input.MouseScrollWheel = 1;
+            } 
+            else if (mouseButton == 5) {
+                state->input.MouseScrollWheel = -1;
+            }
         }break;
         case ButtonRelease:
         {
-            LOG("Mouse button released: %u\n", e.xbutton.button);
+            unsigned int& mouseButton = e.xbutton.button;
+            LOG("Mouse button released: %u\n", mouseButton);
+            if (mouseButton == 1) {
+                state->input.Fire2 -= 1;
+            }
+            else if (mouseButton == 2) {
+                state->input.Submit -= 1;
+            }
+            else if (mouseButton == 3) {
+                state->input.Fire3 -= 1;
+            }
         }break;
         case KeymapNotify:
         {
@@ -142,11 +172,117 @@ void ProcessMessages()
         {
             XLookupString(&e.xkey, 0, 0, &keysym, 0);
             LOG("Key pressed: %lu\n", keysym);
+            constexpr int keyValue = 1;
+            if (keysym == 'W')
+            {
+                state->input.Vertical += keyValue;
+            }
+            else if (keysym == 'A')
+            {
+                state->input.Horizontal += -keyValue;
+            }
+            else if (keysym == 'S')
+            {
+                state->input.Vertical += -keyValue;
+            }
+            else if (keysym == 'D')
+            {
+                state->input.Horizontal += keyValue;
+            }
+            else if (keysym == 'Q')
+            {
+                state->input.Fire1 += -keyValue;
+            }
+            else if (keysym == 'E')
+            {
+                state->input.Fire1 += keyValue;
+            }
+            else if (keysym == XK_Up)
+            {
+                state->input.Vertical += keyValue;
+            }
+            else if (keysym == XK_Down)
+            {
+                state->input.Vertical += -keyValue;
+            }
+            else if (keysym == XK_Left)
+            {
+                state->input.Horizontal += -keyValue;
+            }
+            else if (keysym == XK_Right)
+            {
+                state->input.Horizontal += keyValue;
+            }
+            else if (keysym == XK_Escape)
+            {
+                state->input.Cancel += keyValue;
+            }
+            else if (keysym == XK_space)
+            {
+                state->input.Jump += keyValue;
+            }
+            else if (keysym == XK_Return)
+            {
+                state->input.Submit += keyValue;
+            }
         }break;
         case KeyRelease:
         {
             XLookupString(&e.xkey, 0, 0, &keysym, 0);
             LOG("Key released: %lu\n", keysym);
+            constexpr int keyValue = -1;
+            if (keysym == 'W')
+            {
+                state->input.Vertical += keyValue;
+            }
+            else if (keysym == 'A')
+            {
+                state->input.Horizontal += -keyValue;
+            }
+            else if (keysym == 'S')
+            {
+                state->input.Vertical += -keyValue;
+            }
+            else if (keysym == 'D')
+            {
+                state->input.Horizontal += keyValue;
+            }
+            else if (keysym == 'Q')
+            {
+                state->input.Fire1 += -keyValue;
+            }
+            else if (keysym == 'E')
+            {
+                state->input.Fire1 += keyValue;
+            }
+            else if (keysym == XK_Up)
+            {
+                state->input.Vertical += keyValue;
+            }
+            else if (keysym == XK_Down)
+            {
+                state->input.Vertical += -keyValue;
+            }
+            else if (keysym == XK_Left)
+            {
+                state->input.Horizontal += -keyValue;
+            }
+            else if (keysym == XK_Right)
+            {
+                state->input.Horizontal += keyValue;
+            }
+            else if (keysym == XK_Escape)
+            {
+                state->input.Cancel += keyValue;
+            }
+            else if (keysym == XK_space)
+            {
+                state->input.Jump += keyValue;
+            }
+            else if (keysym == XK_Return)
+            {
+                state->input.Submit += keyValue;
+            }
         }break;
         case Expose:
         {
@@ -181,8 +317,17 @@ void initPlatformLayer()
 
 bool QueryUserInput(UserInput& input)
 {
-
-
+    input = state->input;
+    state->input.MouseScrollWheel = 0;
+    clamp(input.Horizontal, -1.0f, 1.0f);
+    clamp(input.Vertical, -1.0f, 1.0f);
+    clamp(input.Fire1, -1.0f, 1.0f);
+    clamp(input.Fire2, -1.0f, 1.0f);
+    clamp(input.Fire3, -1.0f, 1.0f);
+    clamp(input.Jump, -1.0f, 1.0f);
+    clamp(input.MouseScrollWheel, -1.0f, 1.0f);
+    clamp(input.Submit, -1.0f, 1.0f);
+    clamp(input.Cancel, -1.0f, 1.0f);
     return true;
 }
 
