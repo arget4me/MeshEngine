@@ -120,7 +120,7 @@ void CreateGLXWindow()
         ERRORLOG("Unable to find specified framebuffer config!\n");
     }
     else
-    {
+    {  
         XVisualInfo* visual = glXGetVisualFromFBConfig(state->display, *framebufferConfig);
         if(visual == 0)
         {
@@ -143,20 +143,14 @@ void CreateGLXWindow()
                 {
                     LOG("glXCreateContextAttribsARB successfull\n");
                     glXDestroyContext(state->display, state->context);
+                    XFree(state->visualInfo);
 
                     state->context = glContext;
                     glXMakeCurrent(state->display, state->window, state->context);
                     LOG("GL_VERSION: %s\n", (char*) glGetString(GL_VERSION));
                 }
             }
-            else
-            {
-                GLXContext glContext = glXCreateNewContext(state->display, *framebufferConfig, GLX_RGBA_TYPE, 0, True);
-                if(glContext != 0)
-                {
-                    state->context = glContext;
-                }
-            }
+            XFree(visual);
             XSync( state->display, False );
 
             // Verifying that context is a direct context
