@@ -31,50 +31,12 @@
         // RPI
         {
             "type": "shell",
-            "label": "Build MeshEngine [RPI]",
-            "command": "./build_pi.sh",
-            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
-            "group": {"kind": "build", "isDefault": true},
-            "options": {
-                "cwd": "${workspaceFolder}/RaspberryPiBcmHost/"
-            }
-        },
-        {
-            "type": "shell",
             "label": "Make MeshEngine [RPI]",
             "command": "make",
             "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
             "group": {"kind": "build", "isDefault": true},
             "options": {
-                "cwd": "${workspaceFolder}/RaspberryPiBcmHost/"
-            }
-        },
-        {
-            "type": "shell",
-            "label": "Test MeshEngine [RPI]",
-            "command": "./build/MeshPi_DEBUG",
-            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
-            "group": {"kind": "test", "isDefault": true},
-        },
-        {
-            "type": "shell",
-            "label": "Debug MeshEngine [RPI]",
-            "command": "gdb build/MeshPi-DEBUG",
-            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
-            "group": {"kind": "test", "isDefault": true},
-        },
-
-
-
-        // RPI
-        {
-            "type": "shell",
-            "label": "Make MeshEngine [RPI GLX]",
-            "command": "make",
-            "presentation": {"echo": true, "reveal": "always", "focus": true, "panel": "shared", "showReuseMessage": false, "clear": true},
-            "group": {"kind": "build", "isDefault": true},
-            "options": {
-                "cwd": "${workspaceFolder}/RaspberryPiGLX/"
+                "cwd": "${workspaceFolder}/src/RaspberryPi/"
             }
         },
     ]

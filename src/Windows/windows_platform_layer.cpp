@@ -1,6 +1,6 @@
-#include "windows_platform_layer.h"
-#include <common.h>
 #include <Windows.h>
+#include "platform_layer.h"
+#include <common.h>
 #include <windowsx.h>
 
 #include <GLEW/glew.h>
@@ -17,6 +17,7 @@ static struct WindowsPlatformInternalData
 {
     HDC DeviceContext;
     UserInput UserInput{};
+    bool Running;
 }winData{};
 
 LRESULT CALLBACK MainWndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -212,8 +213,24 @@ HGLRC Win32CreateOpenGLContext(HINSTANCE hInstance, HDC DeviceContext)
     return opengl_context_handle;
 }
 
-bool QueryUserInput(UserInput& input)
+bool ShouldWindowClose()
 {
+    return !winData.Running;
+}
+
+void QueryUserInput(UserInput& input)
+{
+    MSG msg = { };
+    while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) // Poll all messages belonging to this thread
+    {
+        if (msg.message == WM_QUIT)
+        {
+            winData.Running = false;
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
     input = winData.UserInput;
     winData.UserInput.MouseScrollWheel = 0;
     clamp(input.Horizontal, -1.0f, 1.0f);
@@ -227,20 +244,29 @@ bool QueryUserInput(UserInput& input)
     clamp(input.MouseScrollWheel, -1.0f, 1.0f);
     clamp(input.Submit, -1.0f, 1.0f);
     clamp(input.Cancel, -1.0f, 1.0f);
-    return true;
+}
+
+void SwapBuffers()
+{
+
+}
+
+void CleanupPlatformLayer()
+{
+    SwapBuffers(winData.DeviceContext);
 }
 
 int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
 {
-    bool GlobalRunning = true;
-    while (GlobalRunning)
+    bool winData.Running = true;
+    while (winData.Running)
     {
         MSG msg = { };
         while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) // Poll all messages belonging to this thread
         {
             if (msg.message == WM_QUIT)
             {
-                GlobalRunning = false;
+                winData.Running = false;
             }
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -387,7 +413,7 @@ LRESULT CALLBACK MainWndProc(
 }
 
 
-int initPlatformLayer()
+int InitPlatformLayer()
 {
     HINSTANCE hinstance = GetModuleHandle(0); // Only works if calling process is not from a dll
     using namespace MESHAPI;
@@ -422,6 +448,7 @@ int initPlatformLayer()
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     ShowWindow(hwnd, SW_SHOW);
+    winData.Running = true;
 
     return TRUE;
 }

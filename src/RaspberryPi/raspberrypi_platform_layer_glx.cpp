@@ -1,4 +1,8 @@
-#include "raspberrypi_platform_layer.h"
+#ifndef RASPBERRY_PI
+#define RASPBERRY_PI
+#endif
+
+#include "platform_layer.h"
 #include <common.h>
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
@@ -24,6 +28,7 @@ typedef struct
    GLXContext context;
    XVisualInfo* visualInfo;
    UserInput input;
+   bool Running;
 } OPENGL_STATE;
 static OPENGL_STATE _state, *state=&_state;
 
@@ -297,6 +302,7 @@ void ProcessMessages(XEvent& e)
             else if (keysym == XK_Escape)
             {
                 state->input.Cancel += keyValue;
+                state->Running = false; // TODO: change this to be when Alt + F4 is pressed
             }
             else if (keysym == XK_space)
             {
@@ -321,11 +327,10 @@ void ProcessMessages(XEvent& e)
     }
 }
 
-void initPlatformLayer()
+void InitPlatformLayer()
 {
-   using namespace MESHAPI;
-
     CreateGLXWindow();
+    state->Running = true;
 
     LOG("OpenGL MESA initialized.\n");
     LOG("GLX_EXTENSIONS              = %s\n", (char *) glXGetClientString(state->display, GLX_EXTENSIONS));
@@ -338,8 +343,15 @@ void initPlatformLayer()
     LOG("GL_SHADING_LANGUAGE_VERSION = %s\n", (char *) glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
-bool QueryUserInput(UserInput& input)
+void QueryUserInput(UserInput& input)
 {
+    while(XPending(state->display))
+    {
+        XEvent e;
+        XNextEvent(state->display, &e);
+        ProcessMessages(e);
+    }
+
     input = state->input;
     state->input.MouseScrollWheel = 0;
     clamp(input.Horizontal, -1.0f, 1.0f);
@@ -351,7 +363,27 @@ bool QueryUserInput(UserInput& input)
     clamp(input.MouseScrollWheel, -1.0f, 1.0f);
     clamp(input.Submit, -1.0f, 1.0f);
     clamp(input.Cancel, -1.0f, 1.0f);
-    return true;
+}
+
+void SwapBuffers()
+{
+    glXSwapBuffers(state->display, state->window);
+}
+
+bool ShouldWindowClose()
+{
+    return !state->Running;
+}
+
+void CleanupPlatformLayer()
+{
+    if(state->context)
+    {
+        glXDestroyContext(state->display, state->context);
+    }
+	XDestroyWindow(state->display, state->window);
+	XFree(state->screen);
+	XCloseDisplay(state->display);
 }
 
 int startGameloop(UpdateAndRenderFunc* UpdateAndRender)

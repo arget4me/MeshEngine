@@ -1,44 +1,26 @@
-#include "MeshEngine.h"
 #include <common.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <platform_layer.h>
 
 // #define OPENGLTEST
 
 #if _WIN64
-
-#include "Windows/windows_platform_layer.h"
 #include <GLEW/glew.h>
 
 #elif __linux__
-#ifdef RASPBERRY_PI
-
-   #include "RaspberryPi/raspberrypi_platform_layer.h"
-
    #ifdef EGL
    #include "GLES2/gl2.h"
    #include "GLES2/gl2ext.h"
    #include "EGL/egl.h"
    #include "EGL/eglext.h"
-   #endif
-
-   #ifdef GLX
+   #else // GLX is default
    #include <GL/glxew.h>
    #include <GL/glew.h>
    #include <GL/gl.h>
    #include <GL/glx.h>
    #include <GL/glxext.h>
    #endif
-
-#else
-#include "RaspberryPi/raspberrypi_platform_layer.h" // Todo: This should not be the default for linux
-
-#include <GL/glxew.h>
-#include <GL/glew.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glxext.h>
-#endif
 #endif
 
 #include <cmath>
@@ -446,7 +428,17 @@ bool UpdateAndRender(real32 dt)
 
    Draw(aspectRatio);
 
-   return true;
+   return !ShouldWindowClose();
+}
+
+void StartGameloop()
+{
+   bool GlobalRunning = true;
+   while (GlobalRunning)
+   {
+      GlobalRunning = UpdateAndRender( 1.0f / 60.0f );
+      SwapBuffers();
+   }
 }
 
 }
@@ -463,7 +455,7 @@ int main(int argc, char* argv[])
 #endif
 {
    using namespace MESHAPI;
-   initPlatformLayer();
+   InitPlatformLayer();
    
    if(!InitGLTest())
    {
@@ -471,6 +463,7 @@ int main(int argc, char* argv[])
    }
 
    LOG("Starting game loop\n");
+   StartGameloop();
 
-   return startGameloop( &UpdateAndRender );
+   return 0;
 }
