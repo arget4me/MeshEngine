@@ -28,7 +28,6 @@
    #include <GL/gl.h>
    #include <GL/glx.h>
    #include <GL/glxext.h>
-
    #endif
 
 #else
@@ -222,9 +221,9 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
 
 bool InitGLTest()
 {
-#ifdef EGL
+#ifdef RASPBERRY_PI
    GLbyte vShaderStr[] =
-      "#version 140 \n"
+      "#version 120 \n" 
       "attribute vec4 vPosition; \n"
       "uniform mat4 rot; \n"
       "uniform mat4 ratio; \n"
@@ -234,8 +233,10 @@ bool InitGLTest()
       "} \n";
 
    GLbyte fShaderStr[] =
-      "#version 140 \n"
+      "#version 120 \n"
+      #ifdef EGL
       "precision mediump float; \n"
+      #endif
       "uniform vec3 color; \n"
       "void main() \n"
       "{ \n"
@@ -288,7 +289,7 @@ bool InitGLTest()
    glAttachShader(examples->shaderProgram, vertexShader);
    glAttachShader(examples->shaderProgram, fragmentShader);
 
-#ifdef EGL
+#ifdef RASPBERRY_PI
    glBindAttribLocation(examples->shaderProgram, 0, "vPosition");
 #endif
 

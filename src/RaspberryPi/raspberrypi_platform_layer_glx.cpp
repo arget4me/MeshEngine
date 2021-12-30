@@ -86,83 +86,36 @@ void CreateGLXWindow()
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
-        /* Problem: glewInit failed, something is seriously wrong. */
         ERRORLOG("Error: %s\n", glewGetErrorString(err));
         return;
     }
 
     LOG("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-    if(GLEW_VERSION_3_1)
+    if(GLEW_VERSION_3_3)
+    {
+        LOG("GL 3.3 Supported.\n");
+    }
+    else if(GLEW_VERSION_3_2)
+    {
+        LOG("GL 3.2 Supported.\n");
+    }
+    else if(GLEW_VERSION_3_1)
     {
         LOG("GL 3.1 Supported.\n");
     }
-
-    GLint glxAttribs[] = {
-		GLX_X_RENDERABLE    , True,
-		GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
-		GLX_RENDER_TYPE     , GLX_RGBA_BIT,
-		GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
-		GLX_RED_SIZE        , 8,
-		GLX_GREEN_SIZE      , 8,
-		GLX_BLUE_SIZE       , 8,
-		GLX_ALPHA_SIZE      , 8,
-		GLX_DEPTH_SIZE      , 24,
-		GLX_STENCIL_SIZE    , 8,
-		GLX_DOUBLEBUFFER    , True,
-		None
-    };
-    
-    int framebufferCount;
-    GLXFBConfig* framebufferConfig = glXChooseFBConfig(state->display, state->screenId, glxAttribs, &framebufferCount);
-    if(framebufferCount == 0)
+    else if(GLEW_VERSION_3_0)
     {
-        ERRORLOG("Unable to find specified framebuffer config!\n");
+        LOG("GL 3.0 Supported.\n");
     }
-    else
-    {  
-        XVisualInfo* visual = glXGetVisualFromFBConfig(state->display, *framebufferConfig);
-        if(visual == 0)
-        {
-            ERRORLOG("Unable to find XVisualInfo for framebuffer config!\n");
-        }
-        else
-        {
-            // Create modern opengl context
-            if(GLXEW_ARB_create_context)
-            {
-                int context_attribs[] = {
-                    GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-                    GLX_CONTEXT_MINOR_VERSION_ARB, 3,
-                    GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-	                None
-                };
-
-                GLXContext glContext = glXCreateContextAttribsARB(state->display, *framebufferConfig, 0, True, context_attribs);
-                if(glContext != 0)
-                {
-                    LOG("glXCreateContextAttribsARB successfull\n");
-                    glXDestroyContext(state->display, state->context);
-                    XFree(state->visualInfo);
-
-                    state->context = glContext;
-                    glXMakeCurrent(state->display, state->window, state->context);
-                    LOG("GL_VERSION: %s\n", (char*) glGetString(GL_VERSION));
-                }
-            }
-            XFree(visual);
-            XSync( state->display, False );
-
-            // Verifying that context is a direct context
-            if (!glXIsDirect(state->display, state->context)) {
-                ERRORLOG("Indirect GLX rendering context obtained\n");
-            }
-            else {
-                LOG("Direct GLX rendering context obtained\n");
-            }
-        }
+    else if(GLEW_VERSION_2_1)
+    {
+        LOG("GL 2.1 Supported.\n");
     }
-
+    else if(GLEW_VERSION_2_0)
+    {
+        LOG("GL 2.0 Supported.\n");
+    }
+    glXSwapIntervalMESA(1); // Activate V-sync
     
     
     XClearWindow(state->display, state->window);
@@ -172,12 +125,6 @@ void CreateGLXWindow()
     keyboardSettings.auto_repeat_mode = AutoRepeatModeOff;
     XChangeKeyboardControl(state->display, KBAutoRepeatMode, &keyboardSettings);
     XAutoRepeatOff(state->display);
-
-
-    /* XCreateSimpleWindow: does NOT support opengl. Use XCreateWindow instead.
-     *   // state->window = XCreateSimpleWindow(state->display, RootWindowOfScreen(state->screen), 0, 0, 480, 340, 1, BlackPixel(state->display, state->screenId), WhitePixel(state->display, state->screenId));
-     *   // XSelectInput(state->display, state->window, INPUTMASK);
-    */
 
     XStoreName(state->display, state->window, RASPBERRY_PI_APPLICATION_NAME);
 
