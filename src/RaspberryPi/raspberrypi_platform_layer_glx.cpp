@@ -129,7 +129,7 @@ void CreateGLXWindow()
         else
         {
             // Create modern opengl context
-            if(GLX_ARB_create_context)
+            if(GLXEW_ARB_create_context)
             {
                 int context_attribs[] = {
                     GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
