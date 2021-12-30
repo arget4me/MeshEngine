@@ -2,7 +2,7 @@
 
 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
-set CPP_VERSION=c++17
+set CPP_VERSION=c++latest
 
 set EXE_NAME=MeshWindows
 set EXE_NAME_DEBUG=%EXE_NAME%-DEBUG

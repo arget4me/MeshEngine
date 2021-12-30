@@ -137,7 +137,7 @@ struct Examples
 };
 
 static struct Examples _examples = 
-{
+{ // TODO: change this to not use c++20 designated initializers
    .VBO = 0, 
    .VAO = 0, 
    .shaderProgram = 0, 
