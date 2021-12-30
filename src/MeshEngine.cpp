@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// #define OPENGLTEST
+
 #if _WIN64
 
 #include "Windows/windows_platform_layer.h"
@@ -11,24 +13,32 @@
 #elif __linux__
 #ifdef RASPBERRY_PI
 
-#include "RaspberryPi/raspberrypi_platform_layer.h"
+   #include "RaspberryPi/raspberrypi_platform_layer.h"
 
-#ifdef EGL
-#include "GLES2/gl2.h"
-#include "GLES2/gl2ext.h"
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#endif
+   #ifdef EGL
+   #include "GLES2/gl2.h"
+   #include "GLES2/gl2ext.h"
+   #include "EGL/egl.h"
+   #include "EGL/eglext.h"
+   #endif
 
-#ifdef GLX
+   #ifdef GLX
+   #include <GL/glxew.h>
+   #include <GL/glew.h>
+   #include <GL/gl.h>
+   #include <GL/glx.h>
+   #include <GL/glxext.h>
+
+   #endif
+
+#else
+#include "RaspberryPi/raspberrypi_platform_layer.h" // Todo: This should not be the default for linux
+
 #include <GL/glxew.h>
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
-
-#endif
-
 #endif
 #endif
 
@@ -41,23 +51,139 @@
 namespace MESHAPI
 {
 
-static GLuint programObject = 0;
-static real32 angle = 0.0f;
-
-static GLfloat rot[] = { // Column Major
-   1.f, 0.f, 0.f, 0.f, //Column 0
-   0.f, 1.f, 0.f, 0.f, //Column 1
-   0.f, 0.f, 1.f, 0.f, //Column 2
-   0.f, 0.f, 0.f, 1.f, //Column 3
+struct Vec2
+{
+   union
+   {
+      struct
+      {
+         real32 x;
+         real32 y;
+      };
+      struct
+      {
+         real32 r;
+         real32 g;
+      };
+   };
 };
-static GLfloat ratio[] = { // Column Major
-   1.f, 0.f, 0.f, 0.f, //Column 0
-   0.f, 1.f, 0.f, 0.f, //Column 1
-   0.f, 0.f, 1.f, 0.f, //Column 2
-   0.f, 0.f, 0.f, 1.f, //Column 3
+
+struct Vec3
+{
+   union
+   {
+      struct
+      {
+         real32 x;
+         real32 y;
+         real32 z;
+      };
+      struct
+      {
+         real32 r;
+         real32 g;
+         real32 b;
+      };
+      Vec2 vec2;
+   };
 };
 
-static GLfloat color[] = { 1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
+struct Vec4
+{
+   union
+   {
+      struct
+      {
+         real32 x;
+         real32 y;
+         real32 z;
+         real32 w;
+      };
+      struct
+      {
+         real32 r;
+         real32 g;
+         real32 b;
+         real32 a;
+      };
+      Vec3 vec3;
+      union
+      {
+         Vec2 vec2;
+         Vec2 vec2b;
+      };
+   };
+};
+
+struct Matrix
+{
+   union 
+   {
+      struct
+      {
+         Vec4 col0;
+         Vec4 col1;
+         Vec4 col2;
+         Vec4 col3;
+      };
+      real32 data;
+   };
+};
+
+struct TriangleMesh
+{
+   Vec3 vertex_0;
+   Vec3 vertex_1;
+   Vec3 vertex_2;
+};
+
+struct CubeMesh
+{
+   TriangleMesh face_0;
+   TriangleMesh face_1;
+};
+
+struct Examples
+{
+   GLuint VBO;
+   GLuint VAO;
+   GLuint shaderProgram = 0;
+   real32 angle = 0.0f;
+   Matrix rot;
+   Matrix ratio;
+   Vec3 color;
+   CubeMesh vertices;
+};
+
+static struct Examples _examples = 
+{
+   .VBO = 0, 
+   .VAO = 0, 
+   .shaderProgram = 0, 
+   .angle = 0.0f,
+   .rot = { // Column Major
+      1.f, 0.f, 0.f, 0.f, //Column 0
+      0.f, 1.f, 0.f, 0.f, //Column 1
+      0.f, 0.f, 1.f, 0.f, //Column 2
+      0.f, 0.f, 0.f, 1.f, //Column 3
+   },
+   .ratio = { // Column Major
+      1.f, 0.f, 0.f, 0.f, //Column 0
+      0.f, 1.f, 0.f, 0.f, //Column 1
+      0.f, 0.f, 1.f, 0.f, //Column 2
+      0.f, 0.f, 0.f, 1.f, //Column 3
+   },
+   .color = {1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/},
+   .vertices = {
+      -0.5f, -0.5f, 0.0f, 
+      +0.5f, -0.5f, 0.0f, 
+      +0.5f, +0.5f, 0.0f,
+
+      -0.5f, -0.5f, 0.0f, 
+      +0.5f, +0.5f, 0.0f, 
+      -0.5f, +0.5f, 0.0f
+   }
+}, *examples = &_examples;
 
 GLuint LoadShader(const char *shaderSrc, GLenum type)
 {
@@ -115,26 +241,7 @@ bool InitGLTest()
       "{ \n"
       " gl_FragColor = vec4(color, 1.0); \n"
       "} \n";
-#else
-   // GLbyte vShaderStr[] =
-   //    "#version 330 core\n"
-   //    "in vec4 vPosition; \n"
-   //    "uniform mat4 rot; \n"
-   //    "uniform mat4 ratio; \n"
-   //    "void main() \n"
-   //    "{ \n"
-   //    " gl_Position = ratio * rot * vec4(vPosition.xyz, 1.0); \n"
-   //    "} \n";
-
-   // GLbyte fShaderStr[] =
-   //    "#version 330 core \n"
-   //    "uniform vec3 color; \n"
-   //    "out vec4 FragColor; \n"
-   //    "void main() \n"
-   //    "{ \n"
-   //    " FragColor = vec4(color, 1.0); \n"
-   //    "} \n";
-
+#elif defined(OPENGLTEST)
    const char *vShaderStr = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
@@ -147,6 +254,25 @@ bool InitGLTest()
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
+#else
+   GLbyte vShaderStr[] =
+      "#version 330 core\n"
+      "in vec4 vPosition; \n"
+      "uniform mat4 rot; \n"
+      "uniform mat4 ratio; \n"
+      "void main() \n"
+      "{ \n"
+      " gl_Position = ratio * rot * vec4(vPosition.xyz, 1.0); \n"
+      "} \n";
+
+   GLbyte fShaderStr[] =
+      "#version 330 core \n"
+      "uniform vec3 color; \n"
+      "out vec4 FragColor; \n"
+      "void main() \n"
+      "{ \n"
+      " FragColor = vec4(color, 1.0); \n"
+      "} \n";
 #endif
    
    GLuint vertexShader;
@@ -156,39 +282,53 @@ bool InitGLTest()
    vertexShader = LoadShader( (char*) vShaderStr, GL_VERTEX_SHADER );
    fragmentShader = LoadShader( (char*) fShaderStr, GL_FRAGMENT_SHADER);
 
-   programObject = glCreateProgram();
-   if(programObject == 0)     return false;
+   examples->shaderProgram = glCreateProgram();
+   if(examples->shaderProgram == 0)     return false;
 
-   glAttachShader(programObject, vertexShader);
-   glAttachShader(programObject, fragmentShader);
+   glAttachShader(examples->shaderProgram, vertexShader);
+   glAttachShader(examples->shaderProgram, fragmentShader);
 
 #ifdef EGL
-   glBindAttribLocation(programObject, 0, "vPosition");
+   glBindAttribLocation(examples->shaderProgram, 0, "vPosition");
 #endif
 
-   glLinkProgram(programObject);
+   glGenVertexArrays(1, &examples->VAO);
+   glGenBuffers(1, &examples->VBO);
+   // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+   glBindVertexArray(examples->VAO);
 
-   glGetProgramiv(programObject, GL_LINK_STATUS, &linked);
+   glBindBuffer(GL_ARRAY_BUFFER, examples->VBO);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(examples->vertices), &examples->vertices, GL_STATIC_DRAW);
+
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   glEnableVertexAttribArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindVertexArray(0);
+
+   glLinkProgram(examples->shaderProgram);
+
+   glGetProgramiv(examples->shaderProgram, GL_LINK_STATUS, &linked);
    if(!linked)
    {
       GLint infoLen = 0;
-      glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &infoLen);
+      glGetProgramiv(examples->shaderProgram, GL_INFO_LOG_LENGTH, &infoLen);
 
       if(infoLen > 1)
       {
          char* infoLog = (char*) malloc(sizeof(char) * infoLen);
-         glGetProgramInfoLog(programObject, infoLen, NULL, infoLog);
+         glGetProgramInfoLog(examples->shaderProgram, infoLen, NULL, infoLog);
          ERRORLOG("Error linking program:\n%s\n", infoLog);
 
          free(infoLog);
       }
-      glDeleteProgram(programObject);
+      glDeleteProgram(examples->shaderProgram);
       return false;
    }
 
    return true;
 }
 
+#ifdef OPENGLTEST
 void LearnOpenGL()
 {
    float vertices[] = {
@@ -220,8 +360,7 @@ void LearnOpenGL()
    glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
    glDrawArrays(GL_TRIANGLES, 0, 3);
 }
-
-
+#endif
 
 static void setRotation(GLfloat* rot, real32 angle)
 {
@@ -235,34 +374,21 @@ static void setRotation(GLfloat* rot, real32 angle)
 
 static void Draw( GLfloat aspectRatio)
 {
-   GLfloat vVertices[] = {
-      -0.5f, -0.5f, 0.0f, 
-      +0.5f, -0.5f, 0.0f, 
-      +0.5f, +0.5f, 0.0f,
+   glUseProgram(examples->shaderProgram);
+   glBindVertexArray(examples->VAO);
+   setRotation(&examples->rot.data, examples->angle);
 
-      -0.5f, -0.5f, 0.0f, 
-      +0.5f, +0.5f, 0.0f, 
-      -0.5f, +0.5f, 0.0f
-   };
+   static GLuint rot_pos = glGetUniformLocation(examples->shaderProgram, "rot");
+   glUniformMatrix4fv(	rot_pos, 1, GL_FALSE, &examples->rot.data);
 
-   glUseProgram(programObject);
-   setRotation(rot, angle);
-
-   static GLuint rot_pos = glGetUniformLocation(programObject, "rot");
-   glUniformMatrix4fv(	rot_pos, 1, GL_FALSE, &rot[0]);
-
-   ratio[0 + 0 * 4] = aspectRatio; // Squash the x-axis
+   (&(examples->ratio.data))[0 + 0 * 4] = aspectRatio; // Squash the x-axis
    
-   static GLuint ratio_pos = glGetUniformLocation(programObject, "ratio");
-   glUniformMatrix4fv(	ratio_pos, 1, GL_FALSE, &ratio[0]);
+   static GLuint ratio_pos = glGetUniformLocation(examples->shaderProgram, "ratio");
+   glUniformMatrix4fv(	ratio_pos, 1, GL_FALSE, &examples->ratio.data);
 
-   static GLuint color_pos = glGetUniformLocation(programObject, "color");
-   glUniform3f(color_pos, color[0], color[1], color[2]);
-
-   // Load the vertex data
-   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vVertices);
-   glEnableVertexAttribArray(0);
-
+   static GLuint color_pos = glGetUniformLocation(examples->shaderProgram, "color");
+   glUniform3fv(color_pos, 1, &examples->color.x);
+   
    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -299,21 +425,25 @@ bool UpdateAndRender(real32 dt)
    glClearColor( 1.f, 0.f, 1.f, 1.f );
    glClear( GL_COLOR_BUFFER_BIT );
 
-   rot[12] += input.Horizontal * dt;
-   rot[13] += input.Vertical * dt;
-   clamp(rot[12], -1, 1);
-   clamp(rot[13], -1, 1);
-
-   angle += input.Fire1 * dt + 3.4f * input.MouseScrollWheel * dt;
-   color[0] += input.Fire2 * dt;
-   color[1] += input.Fire3 * dt;
-   color[2] += (input.Fire3 > 0 && input.Fire2 > 0) * dt;
-   loop(color[0], 0.0f, 1.0f);
-   loop(color[1], 0.0f, 1.0f);
-   loop(color[2], 0.0f, 1.0f);
-
-   // Draw(aspectRatio);
+#ifdef OPENGLTEST
    LearnOpenGL();
+   return true;
+#endif
+
+   (&(examples->rot.data))[12] += input.Horizontal * dt;
+   (&(examples->rot.data))[13] += input.Vertical * dt;
+   clamp((&(examples->rot.data))[12], -1, 1);
+   clamp((&(examples->rot.data))[13], -1, 1);
+
+   examples->angle += input.Fire1 * dt + 3.4f * input.MouseScrollWheel * dt;
+   examples->color.r += input.Fire2 * dt;
+   examples->color.g += input.Fire3 * dt;
+   examples->color.b += (input.Fire3 > 0 && input.Fire2 > 0) * dt;
+   loop(examples->color.r, 0.0f, 1.0f);
+   loop(examples->color.g, 0.0f, 1.0f);
+   loop(examples->color.b, 0.0f, 1.0f);
+
+   Draw(aspectRatio);
 
    return true;
 }
