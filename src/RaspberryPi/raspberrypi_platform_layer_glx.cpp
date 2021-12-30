@@ -386,32 +386,4 @@ void CleanupPlatformLayer()
 	XCloseDisplay(state->display);
 }
 
-int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
-{
-    bool GlobalRunning = true;
-    while (GlobalRunning)
-    {
-        while(XPending(state->display))
-        {
-            XEvent e;
-            XNextEvent(state->display, &e);
-            ProcessMessages(e);
-        }
-
-        GlobalRunning = UpdateAndRender( 1.0f / 60.0f );
-        glXSwapBuffers(state->display, state->window);
-    }
-
-	// Cleanup
-    if(state->context)
-    {
-        glXDestroyContext(state->display, state->context);
-    }
-	XDestroyWindow(state->display, state->window);
-	XFree(state->screen);
-	XCloseDisplay(state->display);
-
-   return 0;
-}
-
 }

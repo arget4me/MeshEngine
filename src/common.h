@@ -27,18 +27,9 @@ using real64 = double  ;
     #endif
     #define WINDOWS_APPLICATION_NAME (TEXT(APPLICATION_NAME) TEXT(" - Windows"))
 #elif __linux__
+#define LINUX_APPLICATION_NAME (APPLICATION_NAME " - Linux")
 #ifdef RASPBERRY_PI
-
-#ifdef EGL
-    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi EGL")
-    #define FULLSCREEN 0
-    #define SCREEN_PADDING 50
-#elif defined(GLX)
     #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi GLX")
-#else
-    #define RASPBERRY_PI_APPLICATION_NAME (APPLICATION_NAME " - RaspberryPi")
-#endif
-
 #endif
 #endif
 

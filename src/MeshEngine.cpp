@@ -9,18 +9,11 @@
 #include <GLEW/glew.h>
 
 #elif __linux__
-   #ifdef EGL
-   #include "GLES2/gl2.h"
-   #include "GLES2/gl2ext.h"
-   #include "EGL/egl.h"
-   #include "EGL/eglext.h"
-   #else // GLX is default
    #include <GL/glxew.h>
    #include <GL/glew.h>
    #include <GL/gl.h>
    #include <GL/glx.h>
    #include <GL/glxext.h>
-   #endif
 #endif
 
 #include <cmath>
@@ -216,9 +209,6 @@ bool InitGLTest()
 
    GLbyte fShaderStr[] =
       "#version 120 \n"
-      #ifdef EGL
-      "precision mediump float; \n"
-      #endif
       "uniform vec3 color; \n"
       "void main() \n"
       "{ \n"

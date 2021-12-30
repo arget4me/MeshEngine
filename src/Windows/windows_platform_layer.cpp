@@ -256,31 +256,6 @@ void CleanupPlatformLayer()
     SwapBuffers(winData.DeviceContext);
 }
 
-int startGameloop(UpdateAndRenderFunc* UpdateAndRender)
-{
-    bool winData.Running = true;
-    while (winData.Running)
-    {
-        MSG msg = { };
-        while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) // Poll all messages belonging to this thread
-        {
-            if (msg.message == WM_QUIT)
-            {
-                winData.Running = false;
-            }
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-
-        //UPDATE AND RENDER
-        UpdateAndRender(1.0f / 60.0f);
-
-        SwapBuffers(winData.DeviceContext);
-    }
-
-    return 0;
-}
-
 LRESULT CALLBACK MainWndProc(
     HWND hwnd,        // handle to window
     UINT uMsg,        // message identifier
