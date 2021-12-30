@@ -5,7 +5,6 @@
 
 #include <GLEW/glew.h>
 #include <GLEW/wglew.h>
-#include <MeshEngine.h>
 
 #include <utils/log.h>
 #include <utils/value_modifier.h>
@@ -248,12 +247,12 @@ void QueryUserInput(UserInput& input)
 
 void SwapBuffers()
 {
-
+    SwapBuffers(winData.DeviceContext);
 }
 
 void CleanupPlatformLayer()
 {
-    SwapBuffers(winData.DeviceContext);
+    
 }
 
 LRESULT CALLBACK MainWndProc(
@@ -388,7 +387,7 @@ LRESULT CALLBACK MainWndProc(
 }
 
 
-int InitPlatformLayer()
+void InitPlatformLayer()
 {
     HINSTANCE hinstance = GetModuleHandle(0); // Only works if calling process is not from a dll
     using namespace MESHAPI;
@@ -396,13 +395,13 @@ int InitPlatformLayer()
 
     if(!RegisterWNDClass(hinstance, WINDOW_CLASS_NAME))
     {
-        return FALSE;
+        return;
     }
 
     HWND hwnd;
     if(!CreateHWND(hwnd, hinstance, WINDOW_CLASS_NAME))
     {
-        return FALSE;
+        return;
     }
 
 
@@ -412,20 +411,18 @@ int InitPlatformLayer()
 
     if(opengl_context_handle == nullptr)
     {
-        return FALSE;
+        return;
     }
 
     if (!wglMakeCurrent(winData.DeviceContext, opengl_context_handle))
     {
-        return FALSE;
+        return;
     }
 
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     ShowWindow(hwnd, SW_SHOW);
     winData.Running = true;
-
-    return TRUE;
 }
 
 }

@@ -6,6 +6,7 @@
 // #define OPENGLTEST
 
 #if _WIN64
+#include <Windows.h>
 #include <GLEW/glew.h>
 
 #elif __linux__
