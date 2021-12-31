@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\Auxiliary\\Build\\vcvarsall.bat" x64
 
 
-set CPP_VERSION=c++latest
+set CPP_VERSION=-std:c++14
 
 set EXE_NAME=MeshWindows
 set EXE_NAME_DEBUG=%EXE_NAME%-DEBUG
@@ -26,7 +26,7 @@ mkdir ..\\..\\build
 pushd ..\\..\\build
 
 
-cl /Fe"%EXE_NAME_DEBUG%" %INCLUDE_DIRECTORIES% %DEFINED_MACROS_DEBUG% -Od -Zi -FC -EHsc -std:%CPP_VERSION% %SOURCE_FILES% -link %LINK_DIRECTORIES% %LINK_LIBRARIES% 
-cl /Fe"%EXE_NAME_RELEASE%" %INCLUDE_DIRECTORIES% %DEFINED_MACROS_RELEASE% -FC -Oix -EHsc -std:%CPP_VERSION% %SOURCE_FILES% -link %LINK_DIRECTORIES% %LINK_LIBRARIES%
+cl /Fe"%EXE_NAME_DEBUG%" %INCLUDE_DIRECTORIES% %DEFINED_MACROS_DEBUG% -Od -Zi -FC -EHsc %CPP_VERSION% %SOURCE_FILES% -link %LINK_DIRECTORIES% %LINK_LIBRARIES% 
+cl /Fe"%EXE_NAME_RELEASE%" %INCLUDE_DIRECTORIES% %DEFINED_MACROS_RELEASE% -FC -Oix -EHsc %CPP_VERSION% %SOURCE_FILES% -link %LINK_DIRECTORIES% %LINK_LIBRARIES%
 popd
 endlocal

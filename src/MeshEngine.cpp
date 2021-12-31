@@ -130,26 +130,28 @@ struct Examples
    CubeMesh vertices;
 };
 
-static struct Examples _examples = 
-{ // TODO: change this to not use c++20 designated initializers
-   .VBO = 0, 
-   .VAO = 0, 
-   .shaderProgram = 0, 
-   .angle = 0.0f,
-   .rot = { // Column Major
+static struct Examples _examples{}, *examples = &_examples;
+
+void SetupExamples()
+{
+   _examples.VBO = 0;
+   _examples.VAO = 0;
+   _examples.shaderProgram = 0;
+   _examples.angle = 0.0f;
+   _examples.rot = { // Column Major
       1.f, 0.f, 0.f, 0.f, //Column 0
       0.f, 1.f, 0.f, 0.f, //Column 1
       0.f, 0.f, 1.f, 0.f, //Column 2
       0.f, 0.f, 0.f, 1.f, //Column 3
-   },
-   .ratio = { // Column Major
+   };
+   _examples.ratio = { // Column Major
       1.f, 0.f, 0.f, 0.f, //Column 0
       0.f, 1.f, 0.f, 0.f, //Column 1
       0.f, 0.f, 1.f, 0.f, //Column 2
       0.f, 0.f, 0.f, 1.f, //Column 3
-   },
-   .color = {1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/},
-   .vertices = {
+   };
+   _examples.color = {1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
+   _examples.vertices = {
       -0.5f, -0.5f, 0.0f, 
       +0.5f, -0.5f, 0.0f, 
       +0.5f, +0.5f, 0.0f,
@@ -157,8 +159,8 @@ static struct Examples _examples =
       -0.5f, -0.5f, 0.0f, 
       +0.5f, +0.5f, 0.0f, 
       -0.5f, +0.5f, 0.0f
-   }
-}, *examples = &_examples;
+   };
+}
 
 GLuint LoadShader(const char *shaderSrc, GLenum type)
 {
@@ -197,6 +199,7 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
 
 bool InitGLTest()
 {
+   SetupExamples();
 #ifdef RASPBERRY_PI
    GLbyte vShaderStr[] =
       "#version 120 \n" 
