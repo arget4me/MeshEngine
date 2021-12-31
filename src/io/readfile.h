@@ -5,7 +5,7 @@
 #include <utils/log.h>
 
 
-int read_buffer(const char* filepath, void* buffer, int buffer_size);
+int32 read_buffer(const char* filepath, void* buffer, int buffer_size);
 
 // #define READFILE_IMPLEMENTATION
 #ifdef READFILE_IMPLEMENTATION
@@ -18,11 +18,14 @@ int read_buffer(const char* filepath, void* buffer, int buffer_size);
 #include <fcntl.h>
 
 #elif __linux__
-
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
 #endif
 
 
-int read_buffer(const char* filepath, void* buffer, int buffer_size)
+int32 read_buffer(const char* filepath, void* buffer, int buffer_size)
 {
     if( filepath == nullptr || buffer == nullptr || buffer_size <= 0 )
     {
@@ -35,7 +38,7 @@ int read_buffer(const char* filepath, void* buffer, int buffer_size)
     errno_t error = _sopen_s(&filehandle, filepath, _O_RDONLY | _O_BINARY, _SH_DENYWR, _S_IREAD);
     if(error == 0)
     {
-        const int bytesReadCount = _read(filehandle, buffer, buffer_size);
+        const int32 bytesReadCount = _read(filehandle, buffer, buffer_size);
         _close( filehandle );
         return bytesReadCount;
     }
@@ -45,32 +48,47 @@ int read_buffer(const char* filepath, void* buffer, int buffer_size)
         {
             case EACCES: 
             {
-                ERRORLOG("EACCES ERROR: The given path is a directory, or the file is read-only, but an open-for-writing operation was attempted.\n%s\n", strerror( error ) );
+                ERRORLOG("Unable to open file %s: EACCES ERROR: The given path is a directory, or the file is read-only, but an open-for-writing operation was attempted.\n%s\n", filepath, strerror( error ) );
             }break;
             case EEXIST: 
             {
-                ERRORLOG("EEXIST ERROR: _O_CREAT and _O_EXCL flags were specified, but filename already exists.\n%s\n", strerror( error ) );
+                ERRORLOG("Unable to open file %s: EEXIST ERROR: _O_CREAT and _O_EXCL flags were specified, but filename already exists.\n%s\n", filepath, strerror( error ) );
             }break;
             case EINVAL: 
             {
-                ERRORLOG("EINVAL ERROR: Invalid oflag, shflag, or pmode argument, or pfh or filename was a null pointer.\n%s\n", strerror( error ) );
+                ERRORLOG("Unable to open file %s: EINVAL ERROR: Invalid oflag, shflag, or pmode argument, or pfh or filename was a null pointer.\n%s\n", filepath, strerror( error ) );
             }break;
             case EMFILE: 
             {
-                ERRORLOG("EMFILE ERROR: No more file descriptors available.\n%s\n", strerror( error ) );
+                ERRORLOG("Unable to open file %s: EMFILE ERROR: No more file descriptors available.\n%s\n", filepath, strerror( error ) );
             }break;
             case ENOENT: 
             {
-                ERRORLOG("ENOENT ERROR: File or path not found.\n%s\n", strerror( error ) );
+                ERRORLOG("Unable to open file %s: ENOENT ERROR: File or path not found.\n%s\n", filepath, strerror( error ) );
             }break;
         }
         return -1;
     }
 #elif __linux__
     TODO_IMPLEMENT_LINUX();
+    int filehandle = open(filepath, O_RDONLY);
+    if(filehandle != -1)
+    {
+        ssize_t bytesReadCount = read(filehandle, buffer, buffer_size);
+        close( filehandle );
+        return bytesReadCount;
+    }
+    else
+    {
+        ERRORLOG("Unable to open file %s: %s\n", filepath, strerror( errno ));
+        return -1;
+    }
+
+
 #endif
 
     return 0;
 }
 
+#endif
 #endif
