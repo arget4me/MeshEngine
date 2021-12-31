@@ -5,46 +5,24 @@
 #include <utils/log.h>
 
 
-int write_buffer_overwrite(std::string filepath, void* buffer, int buffer_size);
+int write_buffer_overwrite(const char* filepath, void* buffer, int buffer_size);
 
-int write_buffer_append(std::string filepath, void* buffer, int buffer_size);
+int write_buffer_append(const char* filepath, void* buffer, int buffer_size);
 
 
 //#define WRITEFILE_IMPLEMENTATION
 #ifdef WRITEFILE_IMPLEMENTATION
 
-int write_buffer_overwrite(std::string filepath, void* buffer, int buffer_size)
+int write_buffer_overwrite(const char* filepath, void* buffer, int buffer_size)
 {
-	std::ofstream out;
-	out.open(filepath, std::ios::out | std::ios::binary);
-	if (out.is_open())
-	{
-		out.write((char*)buffer, buffer_size);
-		out.close();
-		return 0;
-	}
-	else
-	{
-		ERROR_LOG("Unable to open file \"" << filepath << "\"\n");
-		return -1;
-	}
+	// open file for writing
+	// write to file
 }
 
-int write_buffer_append(std::string filepath, void* buffer, int buffer_size)
+int write_buffer_append(const char* filepath, void* buffer, int buffer_size)
 {
-	std::ofstream out;
-	out.open(filepath, std::ios::out | std::ios::binary | std::ios::app);
-	if (out.is_open())
-	{
-		out.write((char*)buffer, buffer_size);
-		out.close();
-		return 0;
-	}
-	else
-	{
-		ERROR_LOG("Unable to open file \"" << filepath << "\"\n");
-		return -1;
-	}
+	// open file for writing with append flag
+	// write to file
 }
 
 #endif

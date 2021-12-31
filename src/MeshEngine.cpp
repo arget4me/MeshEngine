@@ -23,6 +23,7 @@
 #define VALUEMODIFIER_IMPLEMENTATION
 #include <utils/value_modifier.h>
 
+#define READFILE_IMPLEMENTATION
 #include <io/readfile.h>
 
 namespace MESHAPI
@@ -451,7 +452,15 @@ int main(int argc, char* argv[])
       return -1;
    }
 
-   read_buffer("", nullptr, 0);
+   unsigned char buffer[16] = {};
+   buffer[15] = '\0';
+
+   int readCount = read_buffer("res/images/characters_512.png", buffer, 15);
+   LOG("Read %d bytes\n", readCount);
+   for(int i = 0; i < 16; i++)
+   {
+      LOG("%02x \n", buffer[i]);
+   }
 
    LOG("Starting game loop\n");
    StartGameloop();
