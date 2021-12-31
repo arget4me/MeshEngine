@@ -8,6 +8,11 @@ void clamp(real32& value, const real32 min, const real32 max);
 void loop(int32& value, const int32 min, const int32 max);
 void loop(real32& value, const real32 min, const real32 max);
 
+void pulse_float(real32 &value, bool &value_state, real32 speed, real32 min_value, real32 max_value);
+void loop_float(real32 &value, real32 speed, real32 min_value, real32 max_value);
+void interpolate_float(real32& value, real32 speed, real32 target_value);
+void interpolate_float(real32& value, real32 speed, real32 target_value, real32 threshold);
+
 // #define VALUEMODIFIER_IMPLEMENTATION
 #ifdef VALUEMODIFIER_IMPLEMENTATION
 void clamp(int32& value, const int32 min, const int32 max)
@@ -70,6 +75,93 @@ void loop(real32& value, const real32 min, const real32 max)
     value = (real32)newValue * inverseShiftFraction;
 }
 
+void pulse_float(real32 &value, bool &value_state, real32 speed, real32 min_value, real32 max_value)
+{
+	if (value_state)
+	{
+		value += speed;
+		if (value >= max_value)
+		{
+			value = max_value;
+			value_state = false;
+		}
+	}
+	else
+	{
+		value -= speed;
+		if (value <= min_value)
+		{
+			value = min_value;
+			value_state = true;
+		}
+	}
+
+}
+
+void loop_float(real32& value, real32 speed, real32 min_value, real32 max_value)
+{
+	/*@Todo: Take a look at this behaviour again and explaing, not straight forward just from looking at the code.
+		I think doing something similar to fmod but its bit unclear.
+	*/
+	value += speed;
+	if (value > max_value)
+	{
+		int x = (int) ((value - min_value) / (max_value - min_value));
+
+		value = value - x * (max_value - min_value);
+	}
+
+	if (value < min_value)
+	{
+		int x = (int) ((value - min_value) / (max_value - min_value));
+
+		value = max_value + value - x * (max_value - min_value);
+	}
+}
+
+void interpolate_float(real32& value, real32 speed, real32 target_value)
+{
+	if (value == target_value)
+	{
+		return;
+	}else if (value > target_value)
+	{
+		value -= fabs(speed);
+		if (value < target_value)
+		{
+			value = target_value;
+		}
+	}
+	else
+	{
+		value += fabs(speed);
+		if (value > target_value)
+		{
+			value = target_value;
+		}
+	}
+}
+
+void interpolate_float(real32& value, real32 speed, real32 target_value, real32 threshold)
+{
+	if (value == target_value)
+	{
+		return;
+	}
+	else if (value > target_value)
+	{
+		value -= fabs(speed);
+	}
+	else
+	{
+		value += fabs(speed);
+	}
+
+	if (fabs(value - target_value) <= threshold)
+	{
+		value = target_value;
+	}
+}
 
 
 #endif

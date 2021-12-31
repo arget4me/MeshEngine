@@ -1,0 +1,11 @@
+#ifndef IMAGE_IO_HEADER
+#define IMAGE_IO_HEADER
+
+
+
+#define IMAGE_IO_IMPLEMENTATION
+#ifdef IMAGE_IO_IMPLEMENTATION
+
+
+#endif
+#endif
