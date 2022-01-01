@@ -26,6 +26,9 @@
 #define READFILE_IMPLEMENTATION
 #include <io/readfile.h>
 
+#define IMAGE_IO_IMPLEMENTATION
+#include <io/image_io.h>
+
 namespace MESHAPI
 {
 
