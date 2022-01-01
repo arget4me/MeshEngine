@@ -59,7 +59,7 @@ struct PNGFileChunkHeader
     union 
     {
         uint32 ChunkType;
-        struct ChunkTypeParts
+        struct
         {
             uint8 _ancillary;
             uint8 _private;
