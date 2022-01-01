@@ -4,15 +4,17 @@
 #include <common.h>
 #include <utils/log.h>
 
-
+namespace MESHAPI
+{
 int write_buffer_overwrite(const char* filepath, void* buffer, int buffer_size);
-
 int write_buffer_append(const char* filepath, void* buffer, int buffer_size);
-
+}
 
 //#define WRITEFILE_IMPLEMENTATION
 #ifdef WRITEFILE_IMPLEMENTATION
 
+namespace MESHAPI
+{
 int write_buffer_overwrite(const char* filepath, void* buffer, int buffer_size)
 {
 	// open file for writing
@@ -23,6 +25,7 @@ int write_buffer_append(const char* filepath, void* buffer, int buffer_size)
 {
 	// open file for writing with append flag
 	// write to file
+}
 }
 
 #endif

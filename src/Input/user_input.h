@@ -2,6 +2,8 @@
 #define USERINPUT_HEADER
 #include <common.h>
 
+namespace MESHAPI
+{
 struct UserInput
 {
     real32 Horizontal;
@@ -16,5 +18,6 @@ struct UserInput
     real32 Submit;
     real32 Cancel;
 };
+}
 
 #endif

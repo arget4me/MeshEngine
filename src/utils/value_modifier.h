@@ -1,7 +1,8 @@
 #ifndef VALUEMODIFIER_HEADER
 #define VALUEMODIFIER_HEADER
 #include <common.h>
-
+namespace MESHAPI
+{
 void clamp(int32& value, const int32 min, const int32 max);
 void clamp(real32& value, const real32 min, const real32 max);
 
@@ -12,9 +13,12 @@ void pulse_float(real32 &value, bool &value_state, real32 speed, real32 min_valu
 void loop_float(real32 &value, real32 speed, real32 min_value, real32 max_value);
 void interpolate_float(real32& value, real32 speed, real32 target_value);
 void interpolate_float(real32& value, real32 speed, real32 target_value, real32 threshold);
+}
 
 // #define VALUEMODIFIER_IMPLEMENTATION
 #ifdef VALUEMODIFIER_IMPLEMENTATION
+namespace MESHAPI
+{
 void clamp(int32& value, const int32 min, const int32 max)
 {
     if(value < min)
@@ -162,8 +166,7 @@ void interpolate_float(real32& value, real32 speed, real32 target_value, real32 
 		value = target_value;
 	}
 }
-
+}
 
 #endif
-
 #endif

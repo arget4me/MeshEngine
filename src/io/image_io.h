@@ -1,9 +1,19 @@
 #ifndef IMAGE_IO_HEADER
 #define IMAGE_IO_HEADER
+/** 
+   =====================================================================================
+    NOTE: This is for internal use only.
+    It does not provide a robust image loading in case of malicious or unexpected input.
+   =====================================================================================
+**/
+
 #include <common.h>
 #include <utils/log.h>
 
-struct Color
+
+namespace MESHAPI
+{
+struct ColorRGBA
 {
     uint8 red;
     uint8 green;
@@ -11,21 +21,36 @@ struct Color
     uint8 alpha;
 };
 
-
 struct PNGFile
 {
     uint32 width;
     uint32 height;
-    Color* data;
+    ColorRGBA* data;
 };
 
 // The output will have the data filed mapped to the same address as outputImageBuffer. And it will be constrianed to an upper byte limit defined by outputMaxSize.
-PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, Color* outputImageBuffer, uint32 outputMaxSize);
+PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, ColorRGBA* outputImageBuffer, uint32 outputMaxSize);
+
+}
 
 // #define IMAGE_IO_IMPLEMENTATION
 #ifdef IMAGE_IO_IMPLEMENTATION
 
-// PNG (Portable Network Graphics)
+namespace MESHAPI
+{
+
+/**
+  ================================================================================
+    PNG (Portable Network Graphics) (Second Edition)
+    
+    Following spec: Portable Network Graphics (PNG) Specification (Second Edition)
+    https:// www.w3.org/ TR/2003/ REC-PNG-20031110/
+  ================================================================================
+**/
+
+
+
+
 constexpr uint64 PNG_HEADER = 0x89504e470d0a1a0a; // All PNG files must start with this header: Decimal(137 80 78 71 13 10 26 10) || Hex(0x89 0x50 0x4e 0x47 0x0d 0x0a 0x1a 0x0a) || ASCII(\211 P N G \r \n \032 \n)
 
 #define CHUNK_PROPERTY_BIT 0x32
@@ -36,11 +61,12 @@ constexpr uint32 IDAT = 0x49444154; // Image data:    Compressed or non-compress
 constexpr uint32 IEND = 0x49454E44; // Image trailer: Empty chunk marking the end of the PNG file
 // There are several Ancillary chunks that aren't neccessarialy needed to read the PNG file.
 
+#pragma pack(push, 1)
 struct IHDRChunk
 {
     uint32 Width; 
     uint32 Height; 
-    uint8  Color; 
+    uint8  ColorRGBA; 
     uint8  Compression;
     uint8  Filter; 
     uint8  Interlace; 
@@ -75,8 +101,9 @@ struct PNGFileChunk
     uint8* ChunkData;
     uint32 CRC;
 };
+#pragma pack(pop)
 
-PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, Color* outputImageBuffer, uint32 outputMaxSize)
+PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, ColorRGBA* outputImageBuffer, uint32 outputMaxSize)
 {
     if(filebuffer == nullptr || filesize == 0 || outputImageBuffer == nullptr || outputMaxSize == 0)
     {
@@ -145,7 +172,7 @@ PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, Color* outputImag
 
     return result;
 }
-
+}
 
 #endif
 #endif

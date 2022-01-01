@@ -4,13 +4,16 @@
 #include <common.h>
 #include <utils/log.h>
 
-
+namespace MESHAPI
+{
 int32 read_buffer(const char* filepath, void* buffer, int buffer_size);
+}
 
 // #define READFILE_IMPLEMENTATION
 #ifdef READFILE_IMPLEMENTATION
 
-
+namespace MESHAPI
+{
 #if _WIN64
 
 #include <io.h>
@@ -88,6 +91,7 @@ int32 read_buffer(const char* filepath, void* buffer, int buffer_size)
 #endif
 
     return 0;
+}
 }
 
 #endif
