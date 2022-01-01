@@ -458,11 +458,11 @@ int main(int argc, char* argv[])
    unsigned char buffer[16] = {};
    buffer[15] = '\0';
 
-   int readCount = read_buffer("res/images/characters_512.png", buffer, 15);
-   LOG("Read %d bytes\n", readCount);
+   FullFile charactersFile = ReadFullFile("res/images/characters_512.png", buffer, 15);
+   LOG("Read %d bytes\n", charactersFile.buffer_size);
    for(int i = 0; i < 16; i++)
    {
-      LOG("%02x \n", buffer[i]);
+      LOG("%02x \n", charactersFile.buffer[i]);
    }
 
    LOG("Starting game loop\n");

@@ -29,7 +29,7 @@ struct PNGFile
 };
 
 // The output will have the data filed mapped to the same address as outputImageBuffer. And it will be constrianed to an upper byte limit defined by outputMaxSize.
-PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, ColorRGBA* outputImageBuffer, uint32 outputMaxSize);
+PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSize);
 
 }
 
@@ -103,9 +103,9 @@ struct PNGFileChunk
 };
 #pragma pack(pop)
 
-PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, ColorRGBA* outputImageBuffer, uint32 outputMaxSize)
+PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSize)
 {
-    if(filebuffer == nullptr || filesize == 0 || outputImageBuffer == nullptr || outputMaxSize == 0)
+    if(file.buffer == nullptr || file.buffer_size == 0 || outputImageBuffer == nullptr || outputMaxSize == 0)
     {
         ERRORLOG("Can't parse png. Bad input and output parameteres\n");
         return {0, 0, nullptr};
@@ -115,20 +115,20 @@ PNGFile ParsePNGFile(const uint8* filebuffer, uint32 filesize, ColorRGBA* output
     IHDRChunk* ihdr = nullptr;
     uint32 index = 0;
     
-    if( filesize - index > sizeof(PNG_HEADER) && *((decltype(PNG_HEADER)*)(filebuffer + index)) == PNG_HEADER )
+    if( file.buffer_size - index > sizeof(PNG_HEADER) && *((decltype(PNG_HEADER)*)(file.buffer + index)) == PNG_HEADER )
     {
         index += sizeof(PNG_HEADER);
         int prev_index = index;
-        while(filesize - index - sizeof(PNGFileChunkHeader) > 0)
+        while(file.buffer_size - index - sizeof(PNGFileChunkHeader) > 0)
         {
             PNGFileChunk chunk;
-            chunk.Header = *(PNGFileChunkHeader*)(void*)(filebuffer + index);
+            chunk.Header = *(PNGFileChunkHeader*)(void*)(file.buffer + index);
             index += sizeof(PNGFileChunkHeader);
-            if(filesize - index - chunk.Header.Lenght - sizeof(uint32) > 0 )
+            if(file.buffer_size - index - chunk.Header.Lenght - sizeof(uint32) > 0 )
             {
-                chunk.ChunkData = (uint8*)(filebuffer + index);
+                chunk.ChunkData = (uint8*)(file.buffer + index);
                 index += chunk.Header.Lenght;
-                chunk.CRC = *((uint32*)(filebuffer + index));
+                chunk.CRC = *((uint32*)(file.buffer + index));
                 index += sizeof(decltype(PNGFileChunk::CRC));
             }
             if(prev_index >= index)

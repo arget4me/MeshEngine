@@ -3,11 +3,12 @@
 
 #include <common.h>
 #include <utils/log.h>
+#include "types_io.h"
 
 namespace MESHAPI
 {
-int write_buffer_overwrite(const char* filepath, void* buffer, int buffer_size);
-int write_buffer_append(const char* filepath, void* buffer, int buffer_size);
+int WriteFullFileOverwrite(const char* filepath, FullFile file);
+int WriteFullFileAppend(const char* filepath, FullFile file);
 }
 
 //#define WRITEFILE_IMPLEMENTATION
@@ -15,13 +16,13 @@ int write_buffer_append(const char* filepath, void* buffer, int buffer_size);
 
 namespace MESHAPI
 {
-int write_buffer_overwrite(const char* filepath, void* buffer, int buffer_size)
+int WriteFullFileOverwrite(const char* filepath, FullFile file)
 {
 	// open file for writing
 	// write to file
 }
 
-int write_buffer_append(const char* filepath, void* buffer, int buffer_size)
+int WriteFullFileAppend(const char* filepath, FullFile file)
 {
 	// open file for writing with append flag
 	// write to file

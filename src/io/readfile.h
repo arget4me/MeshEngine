@@ -3,10 +3,11 @@
 
 #include <common.h>
 #include <utils/log.h>
+#include "types_io.h"
 
 namespace MESHAPI
 {
-int32 read_buffer(const char* filepath, void* buffer, int buffer_size);
+FullFile ReadFullFile(const char* filepath, uint8* buffer, int buffer_size);
 }
 
 // #define READFILE_IMPLEMENTATION
@@ -28,14 +29,16 @@ namespace MESHAPI
 #endif
 
 
-int32 read_buffer(const char* filepath, void* buffer, int buffer_size)
+FullFile ReadFullFile(const char* filepath, uint8* buffer, int buffer_size)
 {
+    FullFile result{nullptr, 0};
     if( filepath == nullptr || buffer == nullptr || buffer_size <= 0 )
     {
-        return -1;
+        return result;
     }
     // file at filepath
     // Read into buffer of maximim bytes buffer_size
+
 #if _WIN64 || _WIN32
     int filehandle;
     errno_t error = _sopen_s(&filehandle, filepath, _O_RDONLY | _O_BINARY, _SH_DENYWR, _S_IREAD);
@@ -43,7 +46,9 @@ int32 read_buffer(const char* filepath, void* buffer, int buffer_size)
     {
         const int32 bytesReadCount = _read(filehandle, buffer, buffer_size);
         _close( filehandle );
-        return bytesReadCount;
+        result.buffer_size = bytesReadCount;
+        result.buffer = buffer;
+        return result;
     }
     else
     {
@@ -70,7 +75,7 @@ int32 read_buffer(const char* filepath, void* buffer, int buffer_size)
                 ERRORLOG("Unable to open file %s: ENOENT ERROR: File or path not found.\n%s\n", filepath, strerror( error ) );
             }break;
         }
-        return -1;
+        return result;
     }
 #elif __linux__
     TODO_IMPLEMENT_LINUX();
@@ -79,18 +84,20 @@ int32 read_buffer(const char* filepath, void* buffer, int buffer_size)
     {
         ssize_t bytesReadCount = read(filehandle, buffer, buffer_size);
         close( filehandle );
-        return bytesReadCount;
+        result.buffer_size = bytesReadCount;
+        result.buffer = buffer;
+        return result;
     }
     else
     {
         ERRORLOG("Unable to open file %s: %s\n", filepath, strerror( errno ));
-        return -1;
+        return result;
     }
 
 
 #endif
 
-    return 0;
+    return result;
 }
 }
 
