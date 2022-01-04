@@ -9,7 +9,7 @@
 
 #include <common.h>
 #include <utils/log.h>
-
+#include <assert.h>
 
 namespace MESHAPI
 {
@@ -103,9 +103,25 @@ struct PNGFileChunk
 };
 #pragma pack(pop)
 
+#define ReadFromFile(file, type) (type*)_ReadFromFile(file, sizeof(file))
+#define ReadMultipleFromFile(file, type, count) (type*)_ReadFromFile(file, sizeof(file) * count)
+static uint8* _ReadFromFile(FullFile* file, uint32 size)
+{
+    assert(file->buffer_size >= size);
+
+    uint8* result = file->buffer;
+    file->buffer_size -= size;
+    file->buffer += size;
+
+    return result;
+}
+
 PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSize)
 {
-    if(file.buffer == nullptr || file.buffer_size == 0 || outputImageBuffer == nullptr || outputMaxSize == 0)
+    FullFile parseFile = file;
+    FullFile* at = &parseFile;
+
+    if(parseFile.buffer == nullptr || parseFile.buffer_size == 0 || outputImageBuffer == nullptr || outputMaxSize == 0)
     {
         ERRORLOG("Can't parse png. Bad input and output parameteres\n");
         return {0, 0, nullptr};
@@ -113,35 +129,24 @@ PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputM
 
     PNGFile result{0, 0, nullptr};
     IHDRChunk* ihdr = nullptr;
-    uint32 index = 0;
-    
-    if( file.buffer_size - index > sizeof(PNG_HEADER) && *((decltype(PNG_HEADER)*)(file.buffer + index)) == PNG_HEADER )
+
+    uint64* pngHeader = ReadFromFile(at, uint64);
+    if(*pngHeader == PNG_HEADER )
     {
-        index += sizeof(PNG_HEADER);
-        int prev_index = index;
-        while(file.buffer_size - index - sizeof(PNGFileChunkHeader) > 0)
+        bool EndOfFile = false;
+        while(at->buffer_size - sizeof(PNGFileChunkHeader) > 0 && !EndOfFile)
         {
             PNGFileChunk chunk;
-            chunk.Header = *(PNGFileChunkHeader*)(void*)(file.buffer + index);
-            index += sizeof(PNGFileChunkHeader);
-            if(file.buffer_size - index - chunk.Header.Lenght - sizeof(uint32) > 0 )
-            {
-                chunk.ChunkData = (uint8*)(file.buffer + index);
-                index += chunk.Header.Lenght;
-                chunk.CRC = *((uint32*)(file.buffer + index));
-                index += sizeof(decltype(PNGFileChunk::CRC));
-            }
-            if(prev_index >= index)
-            {
-                // Some error happened
-                ERRORLOG("Unkown error parsing png file.\n");
-                return {0, 0, nullptr};
-            }
-
+            chunk.Header = *ReadFromFile(at, PNGFileChunkHeader);
+            
+            assert(chunk.Header.Lenght > 0);
+            chunk.ChunkData = ReadMultipleFromFile(at, uint8, chunk.Header.Lenght);
+            chunk.CRC = *ReadFromFile(at, uint32);
             switch(chunk.Header.ChunkType)
             {
                 case IHDR:
                 {
+                    LOG("IHDR\n");
                     if(chunk.Header.Lenght == sizeof(IHDRChunk))
                     {
                         ihdr = (IHDRChunk*)chunk.ChunkData;
@@ -156,15 +161,25 @@ PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputM
                 }break;
                 case IPLT:
                 {
-
+                    LOG("IHDR\n");
                 }break;
                 case IDAT:
                 {
-
+                    LOG("IHDR\n");
                 }break;
                 case IEND:
                 {
-                    
+                    LOG("IHDR\n");
+                    if(result.data == nullptr || result.width <= 0 || result.height <= 0)
+                    {
+                        ERRORLOG("Got to end of png file but the file didn't contain correct image data or dimensions.\n");
+                        return {0, 0, nullptr};
+                    }
+                    EndOfFile = true;
+                }break;
+                default:
+                {
+                    LOG("%c%c%c%c\n", (uint8)((chunk.Header.ChunkType >> 24) & 0xff), (uint8)((chunk.Header.ChunkType >> 16) & 0xff), (uint8)((chunk.Header.ChunkType >> 8) & 0xff), (uint8)((chunk.Header.ChunkType) & 0xff));
                 }break;
             }
         }

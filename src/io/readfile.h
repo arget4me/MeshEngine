@@ -7,6 +7,7 @@
 
 namespace MESHAPI
 {
+FullFile ReadFullFileAllocate(const char* filepath);
 FullFile ReadFullFile(const char* filepath, uint8* buffer, int buffer_size);
 }
 
@@ -27,10 +28,25 @@ namespace MESHAPI
 #include <string.h>
 #include <errno.h>
 #endif
+FullFile ReadFullFileAllocate(const char* filepath)
+{
+    #if _WIN64
+
+
+
+    #elif __linux__
+
+    #endif
+
+    ReadFullFile(filepath, buffer, buffer_size);
+}
 
 
 FullFile ReadFullFile(const char* filepath, uint8* buffer, int buffer_size)
 {
+    TODO_IMPLEMENT_WINDOWS();
+    TODO_IMPLEMENT_LINUX();
+
     FullFile result{nullptr, 0};
     if( filepath == nullptr || buffer == nullptr || buffer_size <= 0 )
     {
