@@ -420,6 +420,7 @@ void InitPlatformLayer()
     }
 
     glEnable(GL_FRAMEBUFFER_SRGB);
+    wglSwapIntervalEXT(1);
 
     ShowWindow(hwnd, SW_SHOW);
     winData.Running = true;

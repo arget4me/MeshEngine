@@ -458,12 +458,14 @@ int main(int argc, char* argv[])
    unsigned char buffer[16] = {};
    buffer[15] = '\0';
 
-   FullFile charactersFile = ReadFullFile("res/images/characters_512.png", buffer, 15);
-   LOG("Read %d bytes\n", charactersFile.buffer_size);
-   for(int i = 0; i < 16; i++)
+   FullFile charactersFile = ReadFullFileAllocate("res/images/test_loader.png");
+   PNGFile png;
+   if(charactersFile.buffer > 0)
    {
-      LOG("%02x \n", charactersFile.buffer[i]);
+      LOG("Read %d bytes\n", charactersFile.buffer_size);
+      png = ParsePNGFile(charactersFile, (ColorRGBA*)charactersFile.buffer, charactersFile.buffer_size);
    }
+   
 
    LOG("Starting game loop\n");
    StartGameloop();

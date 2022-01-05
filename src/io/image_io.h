@@ -28,8 +28,8 @@ struct PNGFile
     ColorRGBA* data;
 };
 
-// The output will have the data filed mapped to the same address as outputImageBuffer. And it will be constrianed to an upper byte limit defined by outputMaxSize.
-PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSize);
+// The output will have the data filed mapped to the same address as outputImageBuffer. And it will be constrianed to an upper byte limit defined by outputMaxSizeBytes.
+PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSizeBytes);
 
 }
 
@@ -51,7 +51,7 @@ namespace MESHAPI
 
 
 
-constexpr uint64 PNG_HEADER = 0x89504e470d0a1a0a; // All PNG files must start with this header: Decimal(137 80 78 71 13 10 26 10) || Hex(0x89 0x50 0x4e 0x47 0x0d 0x0a 0x1a 0x0a) || ASCII(\211 P N G \r \n \032 \n)
+constexpr uint64 PNG_HEADER = 0x0a1a0a0d474e5089; // All PNG files must start with this header: Decimal(137 80 78 71 13 10 26 10) || Hex(0x89 0x50 0x4e 0x47 0x0d 0x0a 0x1a 0x0a) || ASCII(\211 P N G \r \n \032 \n)
 
 #define CHUNK_PROPERTY_BIT 0x32
 
@@ -61,15 +61,21 @@ constexpr uint32 IDAT = 0x49444154; // Image data:    Compressed or non-compress
 constexpr uint32 IEND = 0x49454E44; // Image trailer: Empty chunk marking the end of the PNG file
 // There are several Ancillary chunks that aren't neccessarialy needed to read the PNG file.
 
+inline uint32 LittleEndianToBigEndian(uint32& data)
+{
+    return (data << 24) | ((data >> 8) & 0xFF00) | ((data& 0xFF00) << 8) | (data >> 24); 
+}
+
 #pragma pack(push, 1)
 struct IHDRChunk
 {
     uint32 Width; 
     uint32 Height; 
+    uint8  BitDepth;
     uint8  ColorRGBA; 
     uint8  Compression;
     uint8  Filter; 
-    uint8  Interlace; 
+    uint8  Interlace;
 };
 
 struct IPLTChunkEntry
@@ -103,8 +109,8 @@ struct PNGFileChunk
 };
 #pragma pack(pop)
 
-#define ReadFromFile(file, type) (type*)_ReadFromFile(file, sizeof(file))
-#define ReadMultipleFromFile(file, type, count) (type*)_ReadFromFile(file, sizeof(file) * count)
+#define ReadFromFile(file, type) (type*)_ReadFromFile(file, sizeof(type))
+#define ReadMultipleFromFile(file, type, count) (type*)_ReadFromFile(file, sizeof(type) * count)
 static uint8* _ReadFromFile(FullFile* file, uint32 size)
 {
     assert(file->buffer_size >= size);
@@ -116,12 +122,12 @@ static uint8* _ReadFromFile(FullFile* file, uint32 size)
     return result;
 }
 
-PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSize)
+PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputMaxSizeBytes)
 {
     FullFile parseFile = file;
     FullFile* at = &parseFile;
 
-    if(parseFile.buffer == nullptr || parseFile.buffer_size == 0 || outputImageBuffer == nullptr || outputMaxSize == 0)
+    if(parseFile.buffer == nullptr || parseFile.buffer_size == 0 || outputImageBuffer == nullptr || outputMaxSizeBytes == 0)
     {
         ERRORLOG("Can't parse png. Bad input and output parameteres\n");
         return {0, 0, nullptr};
@@ -138,8 +144,9 @@ PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputM
         {
             PNGFileChunk chunk;
             chunk.Header = *ReadFromFile(at, PNGFileChunkHeader);
+            chunk.Header.ChunkType = LittleEndianToBigEndian(chunk.Header.ChunkType);
+            chunk.Header.Lenght = LittleEndianToBigEndian(chunk.Header.Lenght);
             
-            assert(chunk.Header.Lenght > 0);
             chunk.ChunkData = ReadMultipleFromFile(at, uint8, chunk.Header.Lenght);
             chunk.CRC = *ReadFromFile(at, uint32);
             switch(chunk.Header.ChunkType)
@@ -150,8 +157,8 @@ PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputM
                     if(chunk.Header.Lenght == sizeof(IHDRChunk))
                     {
                         ihdr = (IHDRChunk*)chunk.ChunkData;
-                        result.width = ihdr->Width;
-                        result.height = ihdr->Height;
+                        result.width = LittleEndianToBigEndian(ihdr->Width);
+                        result.height = LittleEndianToBigEndian(ihdr->Height);
                     }
                     else
                     {
@@ -161,20 +168,22 @@ PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputM
                 }break;
                 case IPLT:
                 {
-                    LOG("IHDR\n");
+                    LOG("IPLT\n");
                 }break;
                 case IDAT:
                 {
-                    LOG("IHDR\n");
+                    LOG("IDAT\n");
+                    
                 }break;
                 case IEND:
                 {
-                    LOG("IHDR\n");
+                    LOG("IEND\n");
                     if(result.data == nullptr || result.width <= 0 || result.height <= 0)
                     {
                         ERRORLOG("Got to end of png file but the file didn't contain correct image data or dimensions.\n");
                         return {0, 0, nullptr};
                     }
+                    result.data = outputImageBuffer;
                     EndOfFile = true;
                 }break;
                 default:
