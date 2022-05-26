@@ -173,7 +173,16 @@ PNGFile ParsePNGFile(FullFile file, ColorRGBA* outputImageBuffer, uint32 outputM
                 case IDAT:
                 {
                     LOG("IDAT\n");
-                    
+                    if(result.data == nullptr)
+                    {
+                        result.data = outputImageBuffer;
+                    }
+
+                    if(result.data - outputImageBuffer + chunk.Header.Lenght <= outputMaxSizeBytes)
+                    {
+                        memcpy_s(result.data, outputMaxSizeBytes - (result.data - outputImageBuffer), chunk.ChunkData, chunk.Header.Lenght);
+                        result.data = (ColorRGBA*)((uint8*)result.data + chunk.Header.Lenght);
+                    }
                 }break;
                 case IEND:
                 {

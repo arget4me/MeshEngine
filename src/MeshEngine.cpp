@@ -29,6 +29,12 @@
 #define IMAGE_IO_IMPLEMENTATION
 #include <io/image_io.h>
 
+#define USE_STB_IMGAGE
+#ifdef USE_STB_IMGAGE
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#endif
+
 namespace MESHAPI
 {
 
@@ -111,11 +117,17 @@ struct Matrix
    };
 };
 
+struct Vertex
+{
+   Vec3 Position;
+   Vec2 UV;
+};
+
 struct TriangleMesh
 {
-   Vec3 vertex_0;
-   Vec3 vertex_1;
-   Vec3 vertex_2;
+   Vertex vertex_0;
+   Vertex vertex_1;
+   Vertex vertex_2;
 };
 
 struct CubeMesh
@@ -158,13 +170,13 @@ void SetupExamples()
    };
    _examples.color = {1.0f /*r*/, 0.0f /*g*/, 0.0f /*b*/};
    _examples.vertices = {
-      -0.5f, -0.5f, 0.0f, 
-      +0.5f, -0.5f, 0.0f, 
-      +0.5f, +0.5f, 0.0f,
+      -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,
+      +0.5f, -0.5f, 0.0f,     1.0f, 0.0f,
+      +0.5f, +0.5f, 0.0f,     1.0f, 1.0f,
 
-      -0.5f, -0.5f, 0.0f, 
-      +0.5f, +0.5f, 0.0f, 
-      -0.5f, +0.5f, 0.0f
+      -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,
+      +0.5f, +0.5f, 0.0f,     1.0f, 1.0f,
+      -0.5f, +0.5f, 0.0f,     0.0f, 1.0f,
    };
 }
 
@@ -192,10 +204,10 @@ GLuint LoadShader(const char *shaderSrc, GLenum type)
 
     if(infoLen > 1)
     {
-    char* infoLog = (char*)malloc(sizeof(char) * infoLen);
-    glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-    ERRORLOG("Error compiling shader:\n%s\n", infoLog);
-    free(infoLog);
+      char* infoLog = (char*)malloc(sizeof(char) * infoLen);
+      glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+      ERRORLOG("Error compiling shader:\n%s\n", infoLog);
+      free(infoLog);
     }
     glDeleteShader(shader);
     return 0;
@@ -241,20 +253,27 @@ bool InitGLTest()
    GLbyte vShaderStr[] =
       "#version 330 core\n"
       "in vec4 vPosition; \n"
+      "in vec2 vUV; \n"
       "uniform mat4 rot; \n"
       "uniform mat4 ratio; \n"
+      "out vec2 UV; \n"
       "void main() \n"
       "{ \n"
       " gl_Position = ratio * rot * vec4(vPosition.xyz, 1.0); \n"
+      " UV = vUV; \n"
       "} \n";
 
    GLbyte fShaderStr[] =
       "#version 330 core \n"
       "uniform vec3 color; \n"
       "out vec4 FragColor; \n"
+      "in vec2 UV; \n"
+      "uniform sampler2D ourTexture; \n"
       "void main() \n"
       "{ \n"
-      " FragColor = vec4(color, 1.0); \n"
+      " FragColor = vec4(texture(ourTexture, UV).xyz * 0.5 + color * 0.5, 1); \n"
+      " //FragColor = vec4(color, 1.0); \n"
+      // " FragColor = vec4(UV.x, UV.y, 0.0, 1.0); \n"
       "} \n";
 #endif
    
@@ -283,8 +302,11 @@ bool InitGLTest()
    glBindBuffer(GL_ARRAY_BUFFER, examples->VBO);
    glBufferData(GL_ARRAY_BUFFER, sizeof(examples->vertices), &examples->vertices, GL_STATIC_DRAW);
 
-   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
    glEnableVertexAttribArray(0);
+   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, UV));
+   glEnableVertexAttribArray(1);
+
    glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindVertexArray(0);
 
@@ -434,7 +456,39 @@ void StartGameloop()
    }
 }
 
+void UploadImage(PNGFile* png)
+{
+   unsigned int texture;
+   glGenTextures(1, &texture);
+   glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+   glBindTexture(GL_TEXTURE_2D, texture);
+
+   // set the texture wrapping/filtering options (on the currently bound texture object)
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+ 
+#ifdef USE_STB_IMGAGE
+   stbi_set_flip_vertically_on_load(true);
+   int width, height, nrChannels;
+   unsigned char *data = stbi_load("res/images/characters_512.png", &width, &height, &nrChannels, 0); 
+   
+   LOG("Width: %u Height: %u\n", width, height);
+
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+   glGenerateMipmap(GL_TEXTURE_2D);
+   stbi_image_free(data);
+#else
+   LOG("Width: %u Height: %u\n", png->width, png->height);
+
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, png->width, png->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, png->data);
+   glGenerateMipmap(GL_TEXTURE_2D);
+#endif
 }
+
+} // namespace MESHAPI
 
 #if _WIN64 && defined(RELEASE)
 int __stdcall WinMain(
@@ -466,6 +520,7 @@ int main(int argc, char* argv[])
       png = ParsePNGFile(charactersFile, (ColorRGBA*)charactersFile.buffer, charactersFile.buffer_size);
    }
    
+   UploadImage(&png);
 
    LOG("Starting game loop\n");
    StartGameloop();
